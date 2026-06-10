@@ -1,1 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Rollenverwaltung</title>
+  <style>
+    body { font-family: Arial; margin: 20px; background:#f4f4f4; }
+    .box { background:white; padding:20px; border-radius:12px; margin-bottom:20px; }
+    input, textarea, select, button { width:100%; padding:10px; margin:6px 0; font-size:16px; }
+    button { background:#2563eb; color:white; border:0; border-radius:8px; }
+    table { width:100%; border-collapse:collapse; background:white; }
+    th, td { padding:10px; border-bottom:1px solid #ddd; }
+  </style>
+</head>
+<body>
+
 <h1>Rollenverwaltung</h1>
+<div id="app">Laden...</div>
+
+<script>
+const SUPABASE_URL = "https://fkjpuhijmbrxazowbbms.supabase.co";
+const SUPABASE_KEY = "sb_publishable_4QHY2mfUoUmHxfS7dU8fGQ_Deh6bDbu";
+
+const headers = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": "Bearer " + SUPABASE_KEY,
+  "Content-Type": "application/json"
+};
+
+const params = new URLSearchParams(window.location.search);
+const kennung = params.get("id");
+
+async function api(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+    headers,
+    ...options
+  });
+  return await res.json();
+}
+
+async function showList() {
+  const rollen = await api("rollen?select=*&order=typ.asc");
+  let html = `<div class="box"><h2>Alle Rollen</h2></div><table>
+  <tr><th>Kennung</th><th>Typ</th><th>Länge</th><th>Status</th></tr>`;
+
+  rollen.forEach(r => {
+    html += `<tr onclick="location.href='?id=${r.kennung}'">
+      <td>${r.kennung}</td>
+      <td>${r.typ}</td>
+      <td>${r.aktuelle_laenge} m</td>
+      <td>${r.status}</td>
+    </tr>`;
+  });
+
+  html += "</table>";
+  document.getElementById("app").innerHTML = html;
+}
+
+async function showDetail() {
+  const daten = await api("rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*");
+  if (!daten.length) {
+    document.getElementById("app").innerHTML = "Rolle nicht gefunden.";
+    return;
+  }
+
+  const r = daten[0];
+  const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
+
+  const historie = await api("historie?rollen_id=eq." + r.id + "&select=*&order=datum.desc");
+
+  let html = `
+  <div class="box">
+    <h2>${r.kennung}</h2>
+    <p><b>Typ:</b> ${r.typ}</p>
+    <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+    <p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
+    <p><b>Gesamtverlust:</b> ${verlust} m</p>
+    <p><b>Status:</b> ${r.status}</p>
+    <p><b>Bemerkung:</b> ${r.bemerkung || ""}</p>
+  </div>
+
+  <div class="box">
+    <h3>Ändern</h3>
+    <input id="laenge" type="number" step="0.01" value="${r.aktuelle_laenge}">
+    <select id="status">
+      <option ${r.status=="Im Lager"?"selected":""}>Im Lager</option>
+      <option ${r.status=="In Reparatur"?"selected":""}>In Reparatur</option>
+    </select>
+    <textarea id="bemerkung">${r.bemerkung || ""}</textarea>
+    <button onclick="speichern(${r.id})">Speichern</button>
+  </div>
+
+  <div class="box">
+    <h3>Historie</h3>
+  `;
+
+  historie.forEach(h => {
+    html += `<p>${new Date(h.datum).toLocaleString()} — ${h.aktion} — ${h.laenge} m<br>${h.bemerkung || ""}</p>`;
+  });
+
+  html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
+  document.getElementById("app").innerHTML = html;
+}
+
+async function speichern(id) {
+  const laenge = document.getElementById("laenge").value;
+  const status = document.getElementById("status").value;
+  const bemerkung = document.getElementById("bemerkung").value;
+
+  await fetch(SUPABASE_URL + "/rest/v1/rollen?id=eq." + id, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      aktuelle_laenge: laenge,
+      status: status,
+      bemerkung: bemerkung
+    })
+  });
+
+  await fetch(SUPABASE_URL + "/rest/v1/historie", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      rollen_id: id,
+      aktion: status,
+      laenge: laenge,
+      bemerkung: bemerkung
+    })
+  });
+
+  alert("Gespeichert");
+  location.reload();
+}
+
+if (kennung) showDetail();
+else showList();
+</script>
+
+</body>
+</html>
