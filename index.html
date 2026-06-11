@@ -265,32 +265,33 @@ html += `
 
 </div>
 
+html += `
 <div class="box">
-    <h3>Rolle ändern</h3>
-    <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+  <h3>Rolle ändern</h3>
+  <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
 
-<label>Verbrauch / Verlust in Meter</label>
-<input id="verbrauch" type="number" step="0.01" placeholder="z.B. 5">
-    
-    <label>Status</label>
-    <select id="status">
-      <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
-      <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
-    </select>
-    <label>Auftrag (Kunde)</label>
-<textarea id="auftrag" placeholder="Kunde eingeben, wenn zu Electrotherm gesendet wird">${r.auftrag || ""}</textarea>
+  <label>Verbrauch / Verlust in Meter</label>
+  <input id="verbrauch" type="number" step="0.01" placeholder="z.B. 5">
 
-<button onclick="speichern(${r.id})">Speichern</button>
-<button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
-<button class="green" onclick="zurueck(${r.id})">Als zurückgekommen markieren</button>
-<button class="red" onclick="deleteRolle(${r.id})">Rolle löschen</button>
-  </div>
+  <label>Status</label>
+  <select id="status">
+    <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
+    <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
+  </select>
 
-  <div class="box"><h3>Historie</h3>
-  `;
+  <label>Auftrag (Kunde)</label>
+  <textarea id="auftrag" placeholder="Kunde eingeben, wenn zu Electrotherm gesendet wird">${r.auftrag || ""}</textarea>
 
-  if (!historie.length) html += `<p>Noch keine Historie.</p>`;
+  <button onclick="speichern(${r.id})">Speichern</button>
+  <button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
+  <button class="green" onclick="zurueck(${r.id})">Als zurückgekommen markieren</button>
+  <button class="red" onclick="deleteRolle(${r.id})">Rolle löschen</button>
+</div>
 
+<div class="box"><h3>Historie</h3>
+`;
+
+if (!historie.length) html += `<p>Noch keine Historie.</p>`;
   historie.forEach(h => {
     html += `<p><b>${new Date(h.datum).toLocaleString("de-DE")}</b><br>${h.aktion} — ${h.laenge} m<br>${h.bemerkung || ""}</p><hr>`;
   });
