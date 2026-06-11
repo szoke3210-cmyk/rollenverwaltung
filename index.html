@@ -262,17 +262,26 @@ async function showDetail() {
   html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
   document.getElementById("app").innerHTML = html;
 
-  QRCode.toCanvas(document.getElementById("qrCanvas"), qrUrl(r.kennung), { width: 220 });
-}
+  QRCode.toCanvas(document.getElementById("qrCanvas"), qrUrl(r.kennung), { width: 220, margin: 2 }, function (err) {
+  if (err) console.error(err);
+});
 
 function downloadQR(kennung) {
-  const canvas = document.getElementById("qrCanvas");
-  const link = document.createElement("a");
-  link.download = "QR_" + kennung + ".png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-}
+  const url = qrUrl(kennung);
 
+  QRCode.toDataURL(url, { width: 800, margin: 2 }, function (err, dataUrl) {
+    if (err) {
+      alert("QR-Code Fehler");
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.download = "QR_" + kennung + ".png";
+    link.href = dataUrl;
+    link.click();
+  });
+}
+  
 async function speichern(id) {
   const laenge = document.getElementById("laenge").value;
   const status = document.getElementById("status").value;
