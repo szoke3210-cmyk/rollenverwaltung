@@ -28,7 +28,9 @@ canvas{margin-top:10px;max-width:100%}
 </head>
 <body>
 
-<header>Rollenverwaltung</header>
+<header onclick="location.href='index.html'" style="cursor:pointer">
+Rollenverwaltung
+</header>
 <div class="container">
 <div id="app">Laden...</div>
 </div>
@@ -103,10 +105,13 @@ async function showList() {
     </div>`;
   });
 
-  html += `
+html += `
     </div>
   </div>
+`;
 
+if (!typFilter) {
+  html += `
   <div class="box">
     <h2>Neue Rolle hinzufügen</h2>
     <input id="newKennung" placeholder="Kennung z.B. 2-ABC123">
@@ -123,7 +128,10 @@ async function showList() {
     <textarea id="newBemerkung" placeholder="Bemerkung"></textarea>
     <button class="green" onclick="neueRolle()">Neue Rolle speichern</button>
   </div>
+  `;
+}
 
+html += `
   <div class="box">
     <h2>${typFilter ? "Rollen von Typ " + typFilter : "Alle Rollen"}</h2>
     <input id="search" placeholder="Suchen..." onkeyup="filterTable()">
@@ -131,7 +139,7 @@ async function showList() {
 
   <table id="rollenTable">
     <tr><th>Kennung</th><th>Typ</th><th>Länge</th><th>Verlust</th><th>Status</th></tr>
-  `;
+`;
 
   rollen.forEach(r => {
     const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
@@ -252,8 +260,11 @@ async function showDetail() {
 
   <div class="box">
     <h3>Rolle ändern</h3>
-    <label>Aktuelle Länge</label>
-    <input id="laenge" type="number" step="0.01" value="${r.aktuelle_laenge}">
+    <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+
+<label>Verbrauch / Verlust in Meter</label>
+<input id="verbrauch" type="number" step="0.01" placeholder="z.B. 5">
+    
     <label>Status</label>
     <select id="status">
       <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
@@ -281,22 +292,68 @@ document.getElementById("app").innerHTML = html;
 }
 
 async function speichern(id) {
-  const laenge = document.getElementById("laenge").value;
+  const daten = await api("rollen?id=eq." + id + "&select=*");
+  if (!daten.length) return;
+
+  const r = daten[0];
+
+  const verbrauchInput = document.getElementById("verbrauch");
+  const verbrauch = verbrauchInput ? Number(verbrauchInput.value) : 0;
+
   const status = document.getElementById("status").value;
   const bemerkung = document.getElementById("bemerkung").value;
 
+  let neueLaenge = Number(r.aktuelle_laenge);
+
+  if (verbrauch > 0) {
+    neueLaenge = neueLaenge - verbrauch;
+  }
+
+  if (status === "Im Lager" && r.status === "Electrotherm" && (!verbrauch || verbrauch <= 0)) {
+    alert("Bitte eintragen, wie viele Meter verbraucht wurden.");
+    return;
+  }
+
+  const nichtsGeaendert =
+    Number(r.aktuelle_laenge) === Number(neueLaenge) &&
+    r.status === status &&
+    (r.bemerkung || "") === bemerkung;
+
+  if (nichtsGeaendert) {
+    alert("Keine Änderung.");
+    return;
+  }
+
   await api("rollen?id=eq." + id, {
     method: "PATCH",
-    body: JSON.stringify({ aktuelle_laenge: laenge, status, bemerkung })
+    body: JSON.stringify({
+      aktuelle_laenge: neueLaenge,
+      status: status,
+      bemerkung: bemerkung
+    })
   });
+
+  let aktion = "Geändert";
+
+  if (r.status !== status && status === "Electrotherm") {
+    aktion = "Zu Electrotherm gesendet";
+  }
+
+  if (r.status !== status && status === "Im Lager") {
+    aktion = "Von Electrotherm zurück";
+  }
+
+  if (verbrauch > 0) {
+    aktion += " - Verbrauch: " + verbrauch + " m";
+  }
 
   await api("historie", {
     method: "POST",
     body: JSON.stringify({
       rollen_id: id,
-      aktion: "Geändert: " + status,
-      laenge,
-      bemerkung
+      aktion: aktion,
+      laenge: neueLaenge,
+      bemerkung: bemerkung
     })
   });
 
