@@ -270,8 +270,9 @@ async function showDetail() {
       <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
       <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
     </select>
-    <label>Bemerkung</label>
-    <textarea id="bemerkung">${r.bemerkung || ""}</textarea>
+    <label>Kunde / Bemerkung für Historie</label>
+<textarea id="bemerkung" placeholder="Kunde eingeben, wenn zu Electrotherm gesendet wird"></textarea>
+    
     <button onclick="speichern(${r.id})">Speichern</button>
     <button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
     <button class="green" onclick="zurueck(${r.id})">Als zurückgekommen markieren</button>
@@ -309,6 +310,11 @@ async function speichern(id) {
     neueLaenge = neueLaenge - verbrauch;
   }
 
+  if (status === "Electrotherm" && !bemerkung.trim()) {
+  alert("Bitte Kunde eingeben.");
+  return;
+}
+
   if (status === "Im Lager" && r.status === "Electrotherm" && (!verbrauch || verbrauch <= 0)) {
     alert("Bitte eintragen, wie viele Meter verbraucht wurden.");
     return;
@@ -327,10 +333,10 @@ async function speichern(id) {
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-      aktuelle_laenge: neueLaenge,
-      status: status,
-      bemerkung: bemerkung
-    })
+  aktuelle_laenge: neueLaenge,
+  status: status,
+  bemerkung: status === "Electrotherm" ? bemerkung : ""
+})
   });
 
   let aktion = "Geändert";
