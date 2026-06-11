@@ -740,12 +740,7 @@ async function saveRolleEditor(id) {
   alert("Rolle geändert");
   location.reload();
 }
-  document.getElementById("app").innerHTML = html;
-}
-
-
-  location.href = "?id=" + encodeURIComponent(kennung);
-}
+  
 if (page === "statistik") showStatistik();
 else if (page === "typen") showTypen();
 else if (page === "auswahl") showAuswahl();
