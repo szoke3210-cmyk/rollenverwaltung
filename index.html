@@ -228,21 +228,11 @@ async function showDetail() {
   <div class="box">
     <h2>${r.kennung}</h2>
 
-    <label>Kennung</label>
-    <input id="kennungEdit" value="${r.kennung}">
-
-    <label>Typ</label>
-    <input id="typEdit" value="${r.typ}">
-
-    <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
-    <p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
-    <p><b>Gesamtverlust:</b> ${verlust} m</p>
-    <p><b>Status:</b> ${statusBadge(r.status)}</p>
-
-    <p><b>Typ:</b> ${r.typ}</p>
-
-<label>Name / Kennung</label>
-<input id="kennungEdit" value="${r.kennung}">
+<p><b>Typ:</b> ${r.typ}</p>
+<p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+<p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
+<p><b>Gesamtverlust:</b> ${verlust} m</p>
+<p><b>Status:</b> ${statusBadge(r.status)}</p>
 
 <label>Bemerkung</label>
 <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
@@ -356,8 +346,6 @@ if (nichtsGeaendert) {
 await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-  kennung: kennungEdit,
-  typ: typEdit,
   bemerkung: bemerkungEdit,
   aktuelle_laenge: neueLaenge,
   status: status,
