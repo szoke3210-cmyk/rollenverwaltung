@@ -92,6 +92,8 @@ async function showList() {
   <div class="box">
     <button onclick="location.href='?page=statistik'">
       📊 Statistik
+      <button onclick="location.href='?page=typen'">
+  Typen verwalten
     </button>
   </div>
 
@@ -224,6 +226,79 @@ async function neueRolle() {
 
   alert("Rolle gespeichert");
   location.reload();
+}
+
+  async function showTypen() {
+  const rollen = await api("rollen?select=*");
+
+  let typen = {};
+
+  rollen.forEach(r => {
+    if (!typen[r.typ]) typen[r.typ] = { count: 0, meter: 0 };
+    typen[r.typ].count++;
+    typen[r.typ].meter += Number(r.aktuelle_laenge);
+  });
+
+  let html = `<div class="box"><h2>Typen verwalten</h2></div>`;
+
+  Object.keys(typen).sort().forEach(t => {
+    html += `
+      <div class="box">
+        <h3>${t}</h3>
+        <p>${typen[t].count} Rollen</p>
+        <p>${typen[t].meter.toFixed(2)} m</p>
+
+        <input id="typ_${t}" value="${t}">
+
+        <button onclick="renameTyp('${t}')">
+          Typ umbenennen
+        </button>
+
+        <button
+          onclick="deleteTyp('${t}')"
+          style="background:#dc3545;"
+        >
+          Typ löschen + alle Rollen löschen
+        </button>
+      </div>
+    `;
+  });
+
+  html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
+  document.getElementById("app").innerHTML = html;
+}
+
+async function renameTyp(altTyp) {
+  const neuerTyp = document.getElementById("typ_" + altTyp).value.trim();
+
+  if (!neuerTyp) {
+    alert("Neuen Typ eingeben.");
+    return;
+  }
+
+  await api("rollen?typ=eq." + encodeURIComponent(altTyp), {
+    method: "PATCH",
+    body: JSON.stringify({
+      typ: neuerTyp
+    })
+  });
+
+  alert("Typ geändert");
+  location.reload();
+}
+
+async function deleteTyp(typ) {
+  if (!confirm("Diesen Typ wirklich löschen? Alle Rollen dieses Typs werden gelöscht.")) return;
+
+  const rollen = await api("rollen?typ=eq." + encodeURIComponent(typ) + "&select=id");
+
+  for (const r of rollen) {
+    await api("historie?rollen_id=eq." + r.id, { method: "DELETE" });
+    await api("rollen?id=eq." + r.id, { method: "DELETE" });
+  }
+
+  alert("Typ und alle Rollen gelöscht");
+  location.href = "index.html";
 }
   
 async function showStatistik() {
@@ -512,6 +587,7 @@ async function deleteRolle(id) {
 }
 
 if (page === "statistik") showStatistik();
+else if (page === "typen") showTypen();
 else if (kennung) showDetail();
 else showList();
 </script>
