@@ -623,6 +623,7 @@ async function deleteRolle(id) {
 
 async function loadRolleEditor() {
   const id = document.getElementById("rolleSelect").value;
+
   if (!id) {
     document.getElementById("rolleEditor").innerHTML = "";
     return;
@@ -690,6 +691,42 @@ async function saveRolleEditor(id) {
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
+      kennung: kennung,
+      typ: typ,
+      urspruengliche_laenge: ursprung,
+      aktuelle_laenge: aktuell,
+      status: status,
+      bemerkung: bemerkung,
+      auftrag: auftrag
+    })
+  });
+
+  alert("Rolle geändert");
+  location.reload();
+}
+
+async function saveRolleEditor(id) {
+  const kennung = document.getElementById("editKennung").value.trim();
+  const typ = document.getElementById("editTyp").value.trim();
+  const ursprung = Number(document.getElementById("editUrsprung").value);
+  const aktuell = Number(document.getElementById("editAktuell").value);
+  const status = document.getElementById("editStatus").value;
+  const bemerkung = document.getElementById("editBemerkung").value;
+  const auftrag = document.getElementById("editAuftrag").value;
+
+  if (!kennung || !typ) {
+    alert("Kennung und Typ ausfüllen.");
+    return;
+  }
+
+  if (ursprung < 0 || aktuell < 0) {
+    alert("Länge darf nicht negativ sein.");
+    return;
+  }
+
+  await api("rollen?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({
       kennung,
       typ,
       urspruengliche_laenge: ursprung,
@@ -706,13 +743,6 @@ async function saveRolleEditor(id) {
   document.getElementById("app").innerHTML = html;
 }
 
-function openSelectedRolle() {
-  const kennung = document.getElementById("rolleSelect").value;
-
-  if (!kennung) {
-    alert("Bitte Rolle auswählen.");
-    return;
-  }
 
   location.href = "?id=" + encodeURIComponent(kennung);
 }
