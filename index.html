@@ -300,6 +300,13 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
 <button onclick="saveBemerkung(${r.id})">
   Bemerkung speichern
 </button>
+
+<button
+  onclick="deleteRolle(${r.id})"
+  style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
+>
+  Rolle löschen
+</button>
 `;
   
 html += `
@@ -347,10 +354,8 @@ html += `
 
 <input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
 
-  <button onclick="speichern(${r.id})">Speichern</button>
   <button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
   <button class="green" onclick="zurueck(${r.id})">Als zurückgekommen markieren</button>
-  <button class="red" onclick="deleteRolle(${r.id})">Rolle löschen</button>
 </div>
 
 <div class="box"><h3>Historie</h3>
