@@ -232,7 +232,6 @@ async function neueRolle() {
 
   async function showTypen() {
   const rollen = await api("rollen?select=*");
-
   let typen = [...new Set(rollen.map(r => r.typ))].sort();
 
   let html = `
@@ -269,19 +268,13 @@ async function loadTypEditor() {
     return;
   }
 
-  const rollen = await api(
-    "rollen?typ=eq." + encodeURIComponent(typ) + "&select=*"
-  );
+  const rollen = await api("rollen?typ=eq." + encodeURIComponent(typ) + "&select=*");
 
-  const meter = rollen.reduce(
-    (sum, r) => sum + Number(r.aktuelle_laenge),
-    0
-  );
+  const meter = rollen.reduce((sum, r) => sum + Number(r.aktuelle_laenge), 0);
 
   document.getElementById("typEditor").innerHTML = `
     <div class="box">
       <h3>${typ}</h3>
-
       <p>Rollen: ${rollen.length}</p>
       <p>Meter: ${meter.toFixed(2)} m</p>
 
@@ -292,10 +285,7 @@ async function loadTypEditor() {
         Typ umbenennen
       </button>
 
-      <button
-        onclick="deleteTyp('${typ}')"
-        style="background:#dc3545;"
-      >
+      <button onclick="deleteTyp('${typ}')" style="background:#dc3545;">
         Typ löschen
       </button>
     </div>
