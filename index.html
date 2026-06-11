@@ -399,6 +399,11 @@ async function speichern(id) {
     alert("Bitte Auftrag / Kunde eingeben.");
     return;
   }
+  
+  if (r.status === "Electrotherm" && status === "Electrotherm" && (r.auftrag || "") !== auftrag) {
+  alert("Diese Rolle ist bereits bei Electrotherm. Erst zurück ins Lager buchen.");
+  return;
+}
 
   if (status === "Im Lager" && r.status === "Electrotherm" && (!verbrauch || verbrauch <= 0)) {
     alert("Bitte eintragen, wie viele Meter verbraucht wurden.");
