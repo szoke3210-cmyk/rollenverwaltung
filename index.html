@@ -239,9 +239,15 @@ async function showDetail() {
     <p><b>Gesamtverlust:</b> ${verlust} m</p>
     <p><b>Status:</b> ${statusBadge(r.status)}</p>
 
-    <label>Bemerkung</label>
-    <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
-  </div>
+    <p><b>Typ:</b> ${r.typ}</p>
+
+<label>Name / Kennung</label>
+<input id="kennungEdit" value="${r.kennung}">
+
+<label>Bemerkung</label>
+<textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
+
+<button onclick="saveStammdaten(${r.id})">Stammdaten speichern</button>
 `;
   
 html += `
@@ -398,7 +404,21 @@ async function zurueck(id) {
   document.getElementById("status").value = "Im Lager";
   await speichern(id);
 }
+async function saveStammdaten(id) {
+  const kennung = document.getElementById("kennungEdit").value;
+  const bemerkung = document.getElementById("bemerkungEdit").value;
 
+  await api("rollen?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({
+      kennung: kennung,
+      bemerkung: bemerkung
+    })
+  });
+
+  alert("Stammdaten gespeichert");
+  location.reload();
+}
 async function deleteRolle(id) {
   if (!confirm("Diese Rolle wirklich löschen? Die Historie wird auch gelöscht.")) return;
 
