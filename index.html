@@ -49,7 +49,8 @@ const headers = {
 const params = new URLSearchParams(window.location.search);
 const kennung = params.get("id");
 const typFilter = params.get("typ");
-
+const page = params.get("page");
+  
 async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, { headers, ...options });
   if (!res.ok) {
@@ -88,6 +89,12 @@ async function showList() {
   let typOptions = Object.keys(typen).sort().map(t => `<option value="${t}">${t}</option>`).join("");
 
   let html = `
+  <div class="box">
+    <button onclick="location.href='?page=statistik'">
+      📊 Statistik
+    </button>
+  </div>
+
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
     ${typFilter ? `<button onclick="location.href='index.html'">Alle Typen anzeigen</button>` : ""}
@@ -218,7 +225,52 @@ async function neueRolle() {
   alert("Rolle gespeichert");
   location.reload();
 }
+  
+async function showStatistik() {
+  const historie = await api("historie?select=*");
 
+  let statistik = {};
+
+  historie.forEach(h => {
+    if (!h.verbrauch || h.verbrauch <= 0) return;
+
+    const monat = new Date(h.datum).toISOString().slice(0, 7);
+
+    if (!statistik[monat]) statistik[monat] = {};
+    if (!statistik[monat][h.typ]) {
+      statistik[monat][h.typ] = { meter: 0, kunden: {} };
+    }
+
+    statistik[monat][h.typ].meter += Number(h.verbrauch);
+
+    if (h.auftrag) {
+      if (!statistik[monat][h.typ].kunden[h.auftrag]) {
+        statistik[monat][h.typ].kunden[h.auftrag] = 0;
+      }
+      statistik[monat][h.typ].kunden[h.auftrag] += Number(h.verbrauch);
+    }
+  });
+
+  let html = `<div class="box"><h2>Statistik</h2></div>`;
+
+  Object.keys(statistik).sort().reverse().forEach(monat => {
+    html += `<div class="box"><h3>${monat}</h3>`;
+
+    Object.keys(statistik[monat]).forEach(typ => {
+      html += `<p><b>${typ}</b><br>Gesamtverbrauch: ${statistik[monat][typ].meter.toFixed(2)} m</p>`;
+
+      Object.keys(statistik[monat][typ].kunden).forEach(kunde => {
+        html += `<p style="margin-left:20px">${kunde}: ${statistik[monat][typ].kunden[kunde].toFixed(2)} m</p>`;
+      });
+    });
+
+    html += `</div>`;
+  });
+
+  html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
+  document.getElementById("app").innerHTML = html;
+}
+  
 async function showDetail() {
   const daten = await api("rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*");
   if (!daten.length) {
@@ -410,7 +462,10 @@ await api("historie", {
     rollen_id: id,
     aktion: aktion,
     laenge: neueLaenge,
-    bemerkung: auftrag
+    bemerkung: auftrag,
+    verbrauch: verbrauch,
+    typ: r.typ,
+    auftrag: auftrag
   })
 });
   
@@ -450,7 +505,8 @@ async function deleteRolle(id) {
   location.href = "index.html";
 }
 
-if (kennung) showDetail();
+if (page === "statistik") showStatistik();
+else if (kennung) showDetail();
 else showList();
 </script>
 </body>
