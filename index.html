@@ -158,14 +158,6 @@ html += `
   html += `</table>`;
   document.getElementById("app").innerHTML = html;
 
-QRCode.toCanvas(
-  document.getElementById("qrCanvas"),
-  qrUrl(r.kennung),
-  { width: 220, margin: 2 },
-  function(err) {
-    if (err) console.error(err);
-  }
-);
 }
 function typWechsel() {
   const select = document.getElementById("typSelect");
