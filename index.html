@@ -577,6 +577,12 @@ async function saveBemerkung(id) {
   alert("Bemerkung gespeichert");
   location.reload();
 }
+
+  async function loadRolleEditor() {
+  const id = document.getElementById("rolleSelect").value;
+  alert("Rolle ID: " + id);
+}
+  
 async function deleteRolle(id) {
   if (!confirm("Diese Rolle wirklich löschen? Die Historie wird auch gelöscht.")) return;
 
@@ -586,6 +592,7 @@ async function deleteRolle(id) {
   alert("Rolle gelöscht");
   location.href = "index.html";
 }
+  
 async function showAuswahl() {
   const rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
 
@@ -615,6 +622,7 @@ async function showAuswahl() {
       </button>
     </div>
   `;
+  
 async function loadRolleEditor() {
   const id = document.getElementById("rolleSelect").value;
   if (!id) {
