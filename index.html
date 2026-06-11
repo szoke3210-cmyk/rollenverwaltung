@@ -227,14 +227,22 @@ async function showDetail() {
   let html = `
   <div class="box">
     <h2>${r.kennung}</h2>
-    <p><b>Typ:</b> ${r.typ}</p>
+
+    <label>Kennung</label>
+    <input id="kennungEdit" value="${r.kennung}">
+
+    <label>Typ</label>
+    <input id="typEdit" value="${r.typ}">
+
     <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
     <p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
     <p><b>Gesamtverlust:</b> ${verlust} m</p>
     <p><b>Status:</b> ${statusBadge(r.status)}</p>
-    <p><b>Bemerkung:</b> ${r.bemerkung || "-"}</p>
+
+    <label>Bemerkung</label>
+    <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
   </div>
-  `;
+`;
   
 html += `
   <div class="box">
@@ -293,6 +301,9 @@ document.getElementById("app").innerHTML = html;
 }
 
 async function speichern(id) {
+  const kennungEdit = document.getElementById("kennungEdit").value;
+const typEdit = document.getElementById("typEdit").value;
+const bemerkungEdit = document.getElementById("bemerkungEdit").value;
   const daten = await api("rollen?id=eq." + id + "&select=*");
   if (!daten.length) return;
 
@@ -310,7 +321,10 @@ const bemerkung = r.bemerkung || "";
   if (verbrauch > 0) {
     neueLaenge = neueLaenge - verbrauch;
   }
-
+if (neueLaenge < 0) {
+  alert("Verbrauch größer als die aktuelle Länge!");
+  return;
+}
   if (status === "Electrotherm" && !auftrag.trim()) {
   alert("Bitte Auftrag / Kunde eingeben.");
   return;
@@ -334,11 +348,13 @@ if (nichtsGeaendert) {
 await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-        aktuelle_laenge: neueLaenge,
-        status: status,
-        auftrag: status === "Electrotherm" ? auftrag : "",
-        bemerkung: bemerkung
-    })
+  kennung: kennungEdit,
+  typ: typEdit,
+  bemerkung: bemerkungEdit,
+  aktuelle_laenge: neueLaenge,
+  status: status,
+  auftrag: status === "Electrotherm" ? auftrag : ""
+})
 });
   
   let aktion = "Geändert";
