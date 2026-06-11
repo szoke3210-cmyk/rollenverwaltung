@@ -172,7 +172,13 @@ function filterTable() {
     row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
   });
 }
-
+  
+function kundeWechsel() {
+  const select = document.getElementById("auftragSelect");
+  const input = document.getElementById("auftragNeu");
+  input.style.display = select.value === "__neu" ? "block" : "none";
+}
+  
 async function neueRolle() {
   const kennung = document.getElementById("newKennung").value.trim();
   const selectTyp = document.getElementById("typSelect").value;
@@ -223,7 +229,9 @@ async function showDetail() {
   const r = daten[0];
   const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
   const historie = await api("historie?rollen_id=eq." + r.id + "&select=*&order=datum.desc");
-
+const kunden = await api("kunden?select=*&order=name.asc");
+let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option>`).join("");
+  
   let html = `
   <div class="box">
     <h2>${r.kennung}</h2>
@@ -277,8 +285,15 @@ html += `
     <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
   </select>
 
-  <label>Auftrag (Kunde)</label>
-  <textarea id="auftrag" placeholder="Kunde eingeben, wenn zu Electrotherm gesendet wird">${r.auftrag || ""}</textarea>
+  <label>Auftrag / Kunde</label>
+
+<select id="auftragSelect" onchange="kundeWechsel()">
+  <option value="">Kunde auswählen...</option>
+  ${kundenOptions}
+  <option value="__neu">+ Neuer Kunde</option>
+</select>
+
+<input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
 
   <button onclick="speichern(${r.id})">Speichern</button>
   <button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
@@ -311,7 +326,13 @@ const bemerkungEdit = document.getElementById("bemerkungEdit").value;
   const verbrauch = verbrauchInput ? Number(verbrauchInput.value) : 0;
 
   const status = document.getElementById("status").value;
-const auftrag = document.getElementById("auftrag").value;
+const auftragSelect = document.getElementById("auftragSelect").value;
+const auftragNeu = document.getElementById("auftragNeu").value;
+
+const auftrag =
+  auftragSelect === "__neu"
+    ? auftragNeu.trim()
+    : auftragSelect;
 const bemerkung = r.bemerkung || "";
 
   let neueLaenge = Number(r.aktuelle_laenge);
@@ -326,6 +347,18 @@ if (neueLaenge < 0) {
   if (status === "Electrotherm" && !auftrag.trim()) {
   alert("Bitte Auftrag / Kunde eingeben.");
   return;
+}
+  if (auftragSelect === "__neu" && auftragNeu.trim()) {
+  try {
+    await api("kunden", {
+      method: "POST",
+      body: JSON.stringify({
+        name: auftragNeu.trim()
+      })
+    });
+  } catch (e) {
+    console.log("Kunde existiert bereits");
+  }
 }
 
   if (status === "Im Lager" && r.status === "Electrotherm" && (!verbrauch || verbrauch <= 0)) {
