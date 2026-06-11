@@ -233,45 +233,81 @@ async function neueRolle() {
   async function showTypen() {
   const rollen = await api("rollen?select=*");
 
-  let typen = {};
+  let typen = [...new Set(rollen.map(r => r.typ))].sort();
 
-  rollen.forEach(r => {
-    if (!typen[r.typ]) typen[r.typ] = { count: 0, meter: 0 };
-    typen[r.typ].count++;
-    typen[r.typ].meter += Number(r.aktuelle_laenge);
+  let html = `
+    <div class="box">
+      <h2>Typen verwalten</h2>
+
+      <select id="typSelect" onchange="loadTypEditor()">
+        <option value="">Typ auswählen...</option>
+  `;
+
+  typen.forEach(t => {
+    html += `<option value="${t}">${t}</option>`;
   });
 
-  let html = `<div class="box"><h2>Typen verwalten</h2></div>`;
+  html += `
+      </select>
 
-  Object.keys(typen).sort().forEach(t => {
-    html += `
-      <div class="box">
-        <h3>${t}</h3>
-        <p>${typen[t].count} Rollen</p>
-        <p>${typen[t].meter.toFixed(2)} m</p>
+      <div id="typEditor"></div>
 
-        <input id="typ_${t}" value="${t}">
+      <button onclick="location.href='index.html'">
+        Zur Übersicht
+      </button>
+    </div>
+  `;
 
-        <button onclick="renameTyp('${t}')">
-          Typ umbenennen
-        </button>
+  document.getElementById("app").innerHTML = html;
+}
 
-        <button
-          onclick="deleteTyp('${t}')"
-          style="background:#dc3545;"
-        >
-          Typ löschen + alle Rollen löschen
-        </button>
-      </div>
-    `;
-  });
+async function loadTypEditor() {
+  const typ = document.getElementById("typSelect").value;
 
+  if (!typ) {
+    document.getElementById("typEditor").innerHTML = "";
+    return;
+  }
+
+  const rollen = await api(
+    "rollen?typ=eq." + encodeURIComponent(typ) + "&select=*"
+  );
+
+  const meter = rollen.reduce(
+    (sum, r) => sum + Number(r.aktuelle_laenge),
+    0
+  );
+
+  document.getElementById("typEditor").innerHTML = `
+    <div class="box">
+      <h3>${typ}</h3>
+
+      <p>Rollen: ${rollen.length}</p>
+      <p>Meter: ${meter.toFixed(2)} m</p>
+
+      <label>Neuer Typname</label>
+      <input id="newTypName" value="${typ}">
+
+      <button onclick="renameTyp('${typ}')">
+        Typ umbenennen
+      </button>
+
+      <button
+        onclick="deleteTyp('${typ}')"
+        style="background:#dc3545;"
+      >
+        Typ löschen
+      </button>
+    </div>
+  `;
+}
+  
   html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
   document.getElementById("app").innerHTML = html;
 }
 
 async function renameTyp(altTyp) {
-  const neuerTyp = document.getElementById("typ_" + altTyp).value.trim();
+  const neuerTyp = document.getElementById("newTypName").value.trim();
 
   if (!neuerTyp) {
     alert("Neuen Typ eingeben.");
