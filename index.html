@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rollenverwaltung</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 body{font-family:Arial;margin:0;background:#f3f4f6;color:#111827}
 header{background:#0f172a;color:white;padding:16px;font-size:22px;font-weight:bold}
@@ -236,10 +235,20 @@ async function showDetail() {
 
   <div class="box">
     <h3>QR-Code</h3>
-    <p>${qrUrl(r.kennung)}</p>
-    <canvas id="qrCanvas"></canvas>
-    <button onclick="downloadQR('${r.kennung}')">QR-Code herunterladen</button>
-  </div>
+
+<img
+  src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrUrl(r.kennung))}"
+  style="max-width:300px;width:100%;"
+>
+
+<br><br>
+
+<a
+  href="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl(r.kennung))}"
+  download="QR_${r.kennung}.png"
+>
+<button>QR-Code herunterladen</button>
+</a>
 
   <div class="box">
     <h3>Rolle ändern</h3>
@@ -269,32 +278,6 @@ async function showDetail() {
 
   html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
 document.getElementById("app").innerHTML = html;
-
-QRCode.toCanvas(
-  document.getElementById("qrCanvas"),
-  qrUrl(r.kennung),
-  { width: 220, margin: 2 },
-  function(err) {
-    if (err) console.error(err);
-  }
-);
-}
-  
-function downloadQR(kennung) {
-  const url = qrUrl(kennung);
-
-  QRCode.toDataURL(url, { width: 800, margin: 2 }, function (err, dataUrl) {
-    if (err) {
-      alert("QR-Code Fehler");
-      return;
-    }
-
-    const link = document.createElement("a");
-    link.download = "QR_" + kennung + ".png";
-    link.href = dataUrl;
-    link.click();
-  });
-}
   
 async function speichern(id) {
   const laenge = document.getElementById("laenge").value;
