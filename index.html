@@ -247,7 +247,9 @@ async function showDetail() {
 <label>Bemerkung</label>
 <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
 
-<button onclick="saveStammdaten(${r.id})">Stammdaten speichern</button>
+<button onclick="saveBemerkung(${r.id})">
+  Bemerkung speichern
+</button>
 `;
   
 html += `
@@ -404,19 +406,17 @@ async function zurueck(id) {
   document.getElementById("status").value = "Im Lager";
   await speichern(id);
 }
-async function saveStammdaten(id) {
-  const kennung = document.getElementById("kennungEdit").value;
+async function saveBemerkung(id) {
   const bemerkung = document.getElementById("bemerkungEdit").value;
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-      kennung: kennung,
       bemerkung: bemerkung
     })
   });
 
-  alert("Stammdaten gespeichert");
+  alert("Bemerkung gespeichert");
   location.reload();
 }
 async function deleteRolle(id) {
