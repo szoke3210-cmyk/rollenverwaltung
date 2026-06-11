@@ -234,6 +234,7 @@ async function showDetail() {
     <p><b>Status:</b> ${statusBadge(r.status)}</p>
     <p><b>Bemerkung:</b> ${r.bemerkung || "-"}</p>
   </div>
+  `;
   
 html += `
   <div class="box">
@@ -254,7 +255,8 @@ html += `
 </a>
 
 </div>
-
+`;
+  
 html += `
 <div class="box">
   <h3>Rolle ändern</h3>
