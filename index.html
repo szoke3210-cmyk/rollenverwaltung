@@ -244,6 +244,7 @@ async function showDetail() {
     <p><b>Status:</b> ${statusBadge(r.status)}</p>
     <p><b>Bemerkung:</b> ${r.bemerkung || "-"}</p>
   </div>
+  
 html += `
   <div class="box">
     <h3>QR-Code</h3>
@@ -259,10 +260,12 @@ html += `
   href="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl(r.kennung))}"
   download="QR_${r.kennung}.png"
 >
-<button>QR-Code herunterladen</button>
+<button type="button">QR-Code herunterladen</button>
 </a>
 
-  <div class="box">
+</div>
+
+<div class="box">
     <h3>Rolle ändern</h3>
     <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
 
