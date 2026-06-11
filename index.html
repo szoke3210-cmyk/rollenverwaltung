@@ -302,9 +302,6 @@ async function loadTypEditor() {
   `;
 }
   
-  html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
-  document.getElementById("app").innerHTML = html;
-}
 
 async function renameTyp(altTyp) {
   const neuerTyp = document.getElementById("newTypName").value.trim();
