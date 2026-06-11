@@ -268,8 +268,18 @@ async function showDetail() {
   });
 
   html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
-  document.getElementById("app").innerHTML = html;
+document.getElementById("app").innerHTML = html;
 
+QRCode.toCanvas(
+  document.getElementById("qrCanvas"),
+  qrUrl(r.kennung),
+  { width: 220, margin: 2 },
+  function(err) {
+    if (err) console.error(err);
+  }
+);
+}
+  
 function downloadQR(kennung) {
   const url = qrUrl(kennung);
 
