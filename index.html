@@ -138,18 +138,22 @@ html += `
   </div>
 
   <table id="rollenTable">
-    <tr><th>Kennung</th><th>Typ</th><th>Länge</th><th>Verlust</th><th>Status</th></tr>
+    <tr><th>Kennung</th><th>Bemerkung</th><th>Typ</th><th>Länge</th><th>Verlust</th><th>Status</th></tr>
 `;
 
   rollen.forEach(r => {
     const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
     html += `
     <tr onclick="location.href='?id=${encodeURIComponent(r.kennung)}'">
-      <td>${r.kennung}</td>
-      <td>${r.typ}</td>
-      <td>${r.aktuelle_laenge} m</td>
-      <td>${verlust} m</td>
-      <td>${statusBadge(r.status)}</td>
+<td>${r.kennung}</td>
+<td>${r.bemerkung || "-"}</td>
+<td>${r.typ}</td>
+<td>${r.aktuelle_laenge} m</td>
+<td>${verlust} m</td>
+<td>
+  ${statusBadge(r.status)}
+  ${r.status === "Electrotherm" && r.bemerkung ? "<br><small>Kunde: " + r.bemerkung + "</small>" : ""}
+</td>
     </tr>`;
   });
 
