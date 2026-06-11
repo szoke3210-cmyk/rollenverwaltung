@@ -591,15 +591,15 @@ async function showAuswahl() {
 
   let html = `
     <div class="box">
-      <h2>Rolle auswählen</h2>
+      <h2>Rolle bearbeiten</h2>
 
-      <select id="rolleSelect">
+      <select id="rolleSelect" onchange="loadRolleEditor()">
         <option value="">Rolle auswählen...</option>
   `;
 
   rollen.forEach(r => {
     html += `
-      <option value="${r.kennung}">
+      <option value="${r.id}">
         ${r.kennung} - ${r.typ} - ${r.aktuelle_laenge} m - ${r.status}
       </option>
     `;
@@ -608,16 +608,95 @@ async function showAuswahl() {
   html += `
       </select>
 
-      <button onclick="openSelectedRolle()">
-        Rolle öffnen
-      </button>
+      <div id="rolleEditor"></div>
 
       <button onclick="location.href='index.html'">
         Zur Übersicht
       </button>
     </div>
   `;
+async function loadRolleEditor() {
+  const id = document.getElementById("rolleSelect").value;
+  if (!id) {
+    document.getElementById("rolleEditor").innerHTML = "";
+    return;
+  }
 
+  const daten = await api("rollen?id=eq." + id + "&select=*");
+  if (!daten.length) return;
+
+  const r = daten[0];
+
+  document.getElementById("rolleEditor").innerHTML = `
+    <div class="box">
+      <h3>${r.kennung}</h3>
+
+      <label>Kennung</label>
+      <input id="editKennung" value="${r.kennung}">
+
+      <label>Typ</label>
+      <input id="editTyp" value="${r.typ}">
+
+      <label>Ursprüngliche Länge</label>
+      <input id="editUrsprung" type="number" step="0.01" value="${r.urspruengliche_laenge}">
+
+      <label>Aktuelle Länge</label>
+      <input id="editAktuell" type="number" step="0.01" value="${r.aktuelle_laenge}">
+
+      <label>Status</label>
+      <select id="editStatus">
+        <option ${r.status === "Im Lager" ? "selected" : ""}>Im Lager</option>
+        <option ${r.status === "Electrotherm" ? "selected" : ""}>Electrotherm</option>
+      </select>
+
+      <label>Bemerkung</label>
+      <textarea id="editBemerkung">${r.bemerkung || ""}</textarea>
+
+      <label>Auftrag</label>
+      <input id="editAuftrag" value="${r.auftrag || ""}">
+
+      <button onclick="saveRolleEditor(${r.id})">
+        Änderungen speichern
+      </button>
+    </div>
+  `;
+}
+
+async function saveRolleEditor(id) {
+  const kennung = document.getElementById("editKennung").value.trim();
+  const typ = document.getElementById("editTyp").value.trim();
+  const ursprung = Number(document.getElementById("editUrsprung").value);
+  const aktuell = Number(document.getElementById("editAktuell").value);
+  const status = document.getElementById("editStatus").value;
+  const bemerkung = document.getElementById("editBemerkung").value;
+  const auftrag = document.getElementById("editAuftrag").value;
+
+  if (!kennung || !typ) {
+    alert("Kennung und Typ ausfüllen.");
+    return;
+  }
+
+  if (ursprung < 0 || aktuell < 0) {
+    alert("Länge darf nicht negativ sein.");
+    return;
+  }
+
+  await api("rollen?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({
+      kennung,
+      typ,
+      urspruengliche_laenge: ursprung,
+      aktuelle_laenge: aktuell,
+      status,
+      bemerkung,
+      auftrag
+    })
+  });
+
+  alert("Rolle geändert");
+  location.reload();
+}
   document.getElementById("app").innerHTML = html;
 }
 
