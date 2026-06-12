@@ -348,26 +348,25 @@ async function showStatistik() {
     .map(h => h.auftrag || h.bemerkung)
     .filter(Boolean)
 )].sort();
+
 let kundenFilter = `
   <select id="kundeFilter" onchange="showStatistik()">
     <option value="" ${selectedKunde === "" ? "selected" : ""}>
       Alle Kunden
     </option>
 `;
-  window.statistikData = {};
-  kundenListe.forEach(k => {
+
+kundenListe.forEach(k => {
   kundenFilter += `
-    <option
-      value="${k}"
-      ${selectedKunde === k ? "selected" : ""}
-    >
+    <option value="${k}" ${selectedKunde === k ? "selected" : ""}>
       ${k}
     </option>
   `;
 });
 
 kundenFilter += `</select>`;
-  
+
+window.statistikData = {};
 let statistik = window.statistikData;
 
   historie.forEach(h => {
