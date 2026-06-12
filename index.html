@@ -392,7 +392,28 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
   
   let html = `
   <div class="box">
-    <h2>${r.kennung}</h2>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+
+      <div style="flex:1;min-width:250px;">
+        <h2>${r.kennung}</h2>
+
+        <p><b>Typ:</b> ${r.typ}</p>
+        <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+        <p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
+        <p><b>Gesamtverlust:</b> ${verlust} m</p>
+        <p><b>Status:</b> ${statusBadge(r.status)}</p>
+      </div>
+
+      <div style="text-align:center;">
+        <img
+          src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
+          style="max-width:220px;"
+        >
+      </div>
+
+    </div>
+  </div>
+`;
 
 <p><b>Typ:</b> ${r.typ}</p>
 <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
@@ -413,27 +434,6 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
 >
   Rolle löschen
 </button>
-`;
-  
-html += `
-  <div class="box">
-    <h3>QR-Code</h3>
-
-<img
-  src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrUrl(r.kennung))}"
-  style="max-width:300px;width:100%;"
->
-
-<br><br>
-
-<a
-  href="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl(r.kennung))}"
-  download="QR_${r.kennung}.png"
->
-<button type="button">QR-Code herunterladen</button>
-</a>
-
-</div>
 `;
   
 html += `
