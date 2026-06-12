@@ -415,9 +415,12 @@ let statistik = window.statistikData;
 html += `</div>`;
 });
 
-  html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
-  
-  document.getElementById("app").innerHTML = html;
+html += `</div>`;
+});
+
+html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
+
+document.getElementById("app").innerHTML = html;
 }
   
   function downloadStatistikCSV() {
