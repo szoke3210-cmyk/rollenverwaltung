@@ -519,7 +519,7 @@ statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
         </div>
     `;
 
-    Object.keys(statistik[monat][tag][typ].kunden).forEach(kunde => {
+    Object.keys(statistik[monat][tag][typ].kunden || {}).forEach(kunde => {
       html += `
         <div style="
           margin-left:20px;
