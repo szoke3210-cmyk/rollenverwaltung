@@ -442,8 +442,6 @@ if (selectedKunde && kunde !== selectedKunde) return;
     }
 
     statistik[monat][h.typ].meter += Number(h.verbrauch);
-    
-    const tag = new Date(h.datum).toLocaleDateString("de-DE");
 
 if (!statistik[monat][tag]) {
   statistik[monat][tag] = {};
