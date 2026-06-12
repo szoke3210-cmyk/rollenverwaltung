@@ -348,11 +348,13 @@ async function showStatistik() {
 
     statistik[monat][h.typ].meter += Number(h.verbrauch);
 
-    if (h.auftrag) {
-      if (!statistik[monat][h.typ].kunden[h.auftrag]) {
-        statistik[monat][h.typ].kunden[h.auftrag] = 0;
-      }
-      statistik[monat][h.typ].kunden[h.auftrag] += Number(h.verbrauch);
+    const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
+
+if (!statistik[monat][h.typ].kunden[kunde]) {
+  statistik[monat][h.typ].kunden[kunde] = 0;
+}
+
+statistik[monat][h.typ].kunden[kunde] += Number(h.verbrauch);
     }
   });
 
