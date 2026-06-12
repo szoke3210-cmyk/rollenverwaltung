@@ -109,7 +109,7 @@ html += `
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
     <div class="grid">
   `;
-
+if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
     html += `
     <div class="box" onclick="location.href='?typ=${encodeURIComponent(t)}'">
@@ -120,7 +120,7 @@ html += `
       <p>Electrotherm: ${typen[t].electro}</p>
     </div>`;
   });
-
+}
 html += `
     </div>
   </div>
