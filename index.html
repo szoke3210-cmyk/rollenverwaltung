@@ -441,8 +441,16 @@ html += `
   <h3>Rolle ändern</h3>
   <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
 
+  ${r.status === "Electrotherm" ? `
   <label>Verbrauch / Verlust in Meter</label>
-  <input id="verbrauch" type="number" step="0.01" min="0" placeholder="Verbrauch eingeben">
+  <input
+    id="verbrauch"
+    type="number"
+    step="0.01"
+    min="0"
+    placeholder="Verbrauch eingeben"
+  >
+` : ""}
 
 
     <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
