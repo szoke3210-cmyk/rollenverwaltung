@@ -503,7 +503,37 @@ ${r.status === "Electrotherm" ? `
 
 if (!historie.length) html += `<p>Noch keine Historie.</p>`;
   historie.forEach(h => {
-    html += `<p><b>${new Date(h.datum).toLocaleString("de-DE")}</b><br>${h.aktion} — ${h.laenge} m<br>${h.bemerkung || ""}</p><hr>`;
+    html += `
+<div style="
+  border:1px solid #ddd;
+  border-radius:8px;
+  padding:10px;
+  margin-bottom:10px;
+">
+
+  <div style="display:flex;justify-content:space-between;">
+    <b>${new Date(h.datum).toLocaleString("de-DE")}</b>
+    <b>Rest: ${h.laenge || "-"} m</b>
+  </div>
+
+  <div style="margin-top:6px;">
+    ${h.aktion}
+  </div>
+
+  ${h.auftrag ? `
+    <div>
+      <b>Kunde:</b> ${h.auftrag}
+    </div>
+  ` : ""}
+
+  ${h.verbrauch !== null && h.verbrauch !== undefined ? `
+    <div>
+      <b>Verbrauch:</b> ${h.verbrauch} m
+    </div>
+  ` : ""}
+
+</div>
+`;
   });
 
   html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
