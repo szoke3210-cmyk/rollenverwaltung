@@ -428,45 +428,32 @@ window.statistikData = {};
 let statistik = window.statistikData;
 
   historie.forEach(h => {
-    if (!h.verbrauch || h.verbrauch <= 0) return;
-    const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
+  if (!h.verbrauch || h.verbrauch <= 0) return;
 
-if (selectedKunde && kunde !== selectedKunde) return;
+  const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
+  if (selectedKunde && kunde !== selectedKunde) return;
 
-    const monat = new Date(h.datum).toISOString().slice(0, 7);
-    const tag = new Date(h.datum).toLocaleDateString("de-DE");
+  const monat = new Date(h.datum).toISOString().slice(0, 7);
+  const tag = new Date(h.datum).toLocaleDateString("de-DE");
 
-    if (!statistik[monat]) statistik[monat] = {};
-    if (!statistik[monat][h.typ]) {
-      statistik[monat][h.typ] = { meter: 0, kunden: {}, tage: {} };
-    }
+  if (!statistik[monat]) statistik[monat] = {};
+  if (!statistik[monat][tag]) statistik[monat][tag] = {};
 
-    statistik[monat][h.typ].meter += Number(h.verbrauch);
+  if (!statistik[monat][tag][h.typ]) {
+    statistik[monat][tag][h.typ] = {
+      meter: 0,
+      kunden: {}
+    };
+  }
 
-if (!statistik[monat][tag]) {
-  statistik[monat][tag] = {};
-}
+  statistik[monat][tag][h.typ].meter += Number(h.verbrauch);
 
-if (!statistik[monat][tag][h.typ]) {
-  statistik[monat][tag][h.typ] = {
-    meter: 0,
-    kunden: {}
-  };
-}
+  if (!statistik[monat][tag][h.typ].kunden[kunde]) {
+    statistik[monat][tag][h.typ].kunden[kunde] = 0;
+  }
 
-if (!statistik[monat][tag][h.typ].kunden[kunde]) {
-  statistik[monat][tag][h.typ].kunden[kunde] = 0;
-}
-
-statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
-
-    if (!statistik[monat][h.typ].kunden[kunde]) {
-      statistik[monat][h.typ].kunden[kunde] = 0;
-    }
-
-    statistik[monat][h.typ].kunden[kunde] += Number(h.verbrauch);
-  });
-
+  statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
+});
   let html = `
   <div class="box">
     <h2>Statistik</h2>
