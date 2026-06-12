@@ -394,6 +394,7 @@ let statistik = window.statistikData;
 }
   
   function downloadStatistikCSV() {
+  const statistik = window.statistikData || {};
   let csv = "Monat;Typ;Kunde;Verbrauch\n";
 
   Object.keys(statistik).forEach(monat => {
