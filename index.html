@@ -378,15 +378,42 @@ let statistik = window.statistikData;
     html += `<div class="box"><h3>${monat}</h3>`;
 
     Object.keys(statistik[monat]).forEach(typ => {
-      html += `<p><b>${typ}</b><br>Gesamtverbrauch: ${statistik[monat][typ].meter.toFixed(2)} m</p>`;
+      html += `
+  <div style="
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:10px;
+  ">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h4>${typ}</h4>
+      <div style="
+        background:#eef2ff;
+        padding:6px 12px;
+        border-radius:6px;
+        font-weight:bold;
+      ">
+        ${statistik[monat][typ].meter.toFixed(2)} m
+      </div>
+    </div>
+`;
 
       Object.keys(statistik[monat][typ].kunden).forEach(kunde => {
-        html += `<p style="margin-left:20px">${kunde}: ${statistik[monat][typ].kunden[kunde].toFixed(2)} m</p>`;
-      });
-    });
+  html += `
+    <div style="
+      margin-left:20px;
+      padding:6px;
+      margin-top:4px;
+      background:#f8f9fa;
+      border-radius:6px;
+    ">
+      <b>${kunde}</b>: ${statistik[monat][typ].kunden[kunde].toFixed(2)} m
+    </div>
+  `;
+});
 
-    html += `</div>`;
-  });
+html += `</div>`;
+});
 
   html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
   
