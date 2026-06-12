@@ -472,8 +472,17 @@ ${r.status === "Electrotherm" ? `
 
   <input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
 `}
-<button class="orange" onclick="zuElectrotherm(${r.id})">Zu Electrotherm senden</button>
-  <button class="green" onclick="zurueck(${r.id})">Als zurückgekommen markieren</button>
+${r.status === "Im Lager" ? `
+  <button class="orange" onclick="zuElectrotherm(${r.id})">
+    Zu Electrotherm senden
+  </button>
+` : ""}
+
+${r.status === "Electrotherm" ? `
+  <button class="green" onclick="zurueck(${r.id})">
+    Als zurückgekommen markieren
+  </button>
+` : ""}
 </div>
 
 <div class="box"><h3>Historie</h3>
