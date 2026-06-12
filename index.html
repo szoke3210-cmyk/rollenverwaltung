@@ -1,6 +1,7 @@
 <!-- frissites-1 -->
 <!DOCTYPE html>
 <html lang="de">
+<script src="https://unpkg.com/html5-qrcode"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,6 +97,8 @@ async function showList() {
   Typen verwalten
     <button onclick="location.href='?page=auswahl'">
   Rolle auswählen / ändern
+  <button onclick="location.href='?page=scanner'">
+  QR-Code scannen
 </button>
   </div>
 
@@ -644,7 +647,42 @@ async function deleteRolle(id) {
   document.getElementById("app").innerHTML = html;
 }
 
-async function loadRolleEditor() {
+function showScanner() {
+  document.getElementById("app").innerHTML = `
+    <div class="box">
+      <h2>QR-Code scannen</h2>
+      <div id="reader" style="width:100%; max-width:400px;"></div>
+      <button onclick="location.href='index.html'">Zur Übersicht</button>
+    </div>
+  `;
+
+  const scanner = new Html5Qrcode("reader");
+
+  scanner.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    decodedText => {
+      scanner.stop();
+
+      try {
+        const url = new URL(decodedText);
+        const id = url.searchParams.get("id");
+
+        if (id) {
+          location.href = "?id=" + encodeURIComponent(id);
+        } else {
+          alert("Kein Rollen-ID im QR-Code gefunden.");
+        }
+      } catch (e) {
+        location.href = "?id=" + encodeURIComponent(decodedText);
+      }
+    }
+  );
+}
+  async function loadRolleEditor() {
   const id = document.getElementById("rolleSelect").value;
 
   if (!id) {
@@ -767,6 +805,7 @@ async function saveRolleEditor(id) {
 if (page === "statistik") showStatistik();
 else if (page === "typen") showTypen();
 else if (page === "auswahl") showAuswahl();
+else if (page === "scanner") showScanner();
 else if (kennung) showDetail();
 else showList();
 </script>
