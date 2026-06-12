@@ -442,8 +442,19 @@ html += `
 
 html += `
 <div class="box">
-  <h3>Rolle ändern</h3>
+  <h3>
+${r.status === "Im Lager"
+  ? "Zu Electrotherm senden"
+  : "Von Electrotherm zurück"}
+</h3>
   <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+
+${r.status === "Electrotherm" ? `
+<p>
+  <b>Aktueller Kunde:</b>
+  ${r.auftrag || "-"}
+</p>
+` : ""}
 
   ${r.status === "Electrotherm" ? `
   <label>Verbrauch / Verlust in Meter</label>
@@ -461,7 +472,9 @@ html += `
     <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
   </select>
 
-  <label>Auftrag / Kunde</label>
+  ${r.status === "Im Lager" ? `
+<label>Auftrag / Kunde</label>
+` : ""}
 
 ${r.status === "Electrotherm" ? `
   <p><b>${r.auftrag || "-"}</b></p>
