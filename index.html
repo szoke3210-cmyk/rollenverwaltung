@@ -200,7 +200,8 @@ html += `
 
     <br><br>
   ` : ""}
-
+  
+    html += `
   <table id="rollenTable">
     <tr>
       <th>Kennung</th>
@@ -213,8 +214,24 @@ html += `
     </tr>
 `;
 
-  html += `</table>`;
-  document.getElementById("app").innerHTML = html;
+rollen.forEach(r => {
+  const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
+
+  html += `
+    <tr onclick="location.href='?id=${encodeURIComponent(r.kennung)}'">
+      <td>${r.kennung}</td>
+      <td>${r.bemerkung || "-"}</td>
+      <td>${r.typ}</td>
+      <td>${r.aktuelle_laenge} m</td>
+      <td>${verlust} m</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${r.auftrag || "-"}</td>
+    </tr>
+  `;
+});
+
+html += `</table>`;
+document.getElementById("app").innerHTML = html;
 
 }
 function typWechsel() {
