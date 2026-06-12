@@ -74,6 +74,16 @@ function qrUrl(kennung) {
 
 async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
+  if (!typFilter) {
+  html += `
+    <div class="box">
+      <button onclick="location.href='?page=typen'">
+        Typ bearbeiten
+      </button>
+    </div>
+  `;
+
+  Object.keys(typen).sort().forEach(t => {
   if (typFilter) query = "rollen?typ=eq." + encodeURIComponent(typFilter) + "&select=*&order=kennung.asc";
 
   const rollen = await api(query);
@@ -159,10 +169,6 @@ html += `
   </div>
 <button onclick="location.href='?page=auswahl'">
   Rolle bearbeiten
-</button>
-
-<button onclick="location.href='?page=typen'">
-  Typ bearbeiten
 </button>
 
 <br><br>
