@@ -108,8 +108,15 @@ if (!typFilter) {
 html += `
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
+
+    ${!typFilter ? `
+      <button onclick="location.href='?page=typen'">
+        Typ bearbeiten
+      </button>
+    ` : ""}
+
     <div class="grid">
-  `;
+`;
 if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
     html += `
