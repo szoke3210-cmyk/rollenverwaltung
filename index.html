@@ -341,7 +341,8 @@ async function deleteTyp(typ) {
 async function showStatistik() {
   const historie = await api("historie?select=*");
 
-  let statistik = {};
+  window.statistikData = {};
+let statistik = window.statistikData;
 
   historie.forEach(h => {
     if (!h.verbrauch || h.verbrauch <= 0) return;
@@ -388,13 +389,34 @@ async function showStatistik() {
   });
 
   html += `<button onclick="location.href='index.html'">Zur Übersicht</button>`;
-  html += `<p style="color:red">STATISTIK TEST</p>`;
   
   document.getElementById("app").innerHTML = html;
 }
   
   function downloadStatistikCSV() {
-  alert("Excel export következő lépésben jön.");
+  let csv = "Monat;Typ;Kunde;Verbrauch\n";
+
+  Object.keys(statistik).forEach(monat => {
+    Object.keys(statistik[monat]).forEach(typ => {
+      Object.keys(statistik[monat][typ].kunden).forEach(kunde => {
+        csv +=
+          monat + ";" +
+          typ + ";" +
+          kunde + ";" +
+          statistik[monat][typ].kunden[kunde] +
+          "\n";
+      });
+    });
+  });
+
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Statistik.csv";
+  link.click();
 }
   
 async function showDetail() {
