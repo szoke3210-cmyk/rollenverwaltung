@@ -91,22 +91,22 @@ async function showList() {
 
   let typOptions = Object.keys(typen).sort().map(t => `<option value="${t}">${t}</option>`).join("");
 
-  let html = `
-  <div class="box">
-    <button onclick="location.href='?page=statistik'">
-      📊 Statistik
-      <button onclick="location.href='?page=typen'">
-  Typen verwalten
-    <button onclick="location.href='?page=auswahl'">
-  Rolle auswählen / ändern
-  <button onclick="location.href='?page=scanner'">
-  QR-Code scannen
-</button>
-  </div>
+  let html = ``;
 
+if (!typFilter) {
+  html += `
+    <div class="box">
+      <button onclick="location.href='?page=statistik'">📊 Statistik</button>
+      <button onclick="location.href='?page=typen'">Typen verwalten</button>
+      <button onclick="location.href='?page=auswahl'">Rolle bearbeiten</button>
+      <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
+    </div>
+  `;
+}
+
+html += `
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
-    ${typFilter ? `<button onclick="location.href='index.html'">Alle Typen anzeigen</button>` : ""}
     <div class="grid">
   `;
 
