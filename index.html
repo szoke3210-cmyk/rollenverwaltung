@@ -119,6 +119,11 @@ if (!typFilter) {
     <div class="box">
       <button onclick="location.href='?page=statistik'">📊 Statistik</button>
       <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
+      ${isAdmin ? `
+  <button onclick="location.href='?page=kunden'">
+    Kunde bearbeiten
+  </button>
+` : ""}
       <button
   onclick="toggleAdmin()"
   style="width:auto;padding:5px 8px;font-size:12px;"
@@ -1059,10 +1064,106 @@ async function saveRolleEditor(id) {
   alert("Rolle geändert");
   location.reload();
 }
+
+  async function showKunden() {
+  const kunden = await api("kunden?select=*&order=name.asc");
+
+  let html = `
+    <div class="box">
+      <h2>Kunde bearbeiten</h2>
+
+      <select id="kundeEditSelect" onchange="loadKundeEditor()">
+        <option value="">Kunde auswählen...</option>
+  `;
+
+  kunden.forEach(k => {
+    html += `<option value="${k.id}">${k.name}</option>`;
+  });
+
+  html += `
+      </select>
+
+      <div id="kundeEditor"></div>
+
+      <button onclick="location.href='index.html'">
+        Zur Übersicht
+      </button>
+    </div>
+  `;
+
+  document.getElementById("app").innerHTML = html;
+}
+
+async function loadKundeEditor() {
+  const id = document.getElementById("kundeEditSelect").value;
+  if (!id) {
+    document.getElementById("kundeEditor").innerHTML = "";
+    return;
+  }
+
+  const daten = await api("kunden?id=eq." + id + "&select=*");
+  if (!daten.length) return;
+
+  const k = daten[0];
+
+  document.getElementById("kundeEditor").innerHTML = `
+    <div class="box">
+      <h3>${k.name}</h3>
+
+      <label>Neuer Kundenname</label>
+      <input id="newKundeName" value="${k.name}">
+
+      <button onclick="renameKunde(${k.id}, '${k.name}')">
+        Kunde umbenennen
+      </button>
+
+      <button onclick="deleteKunde(${k.id}, '${k.name}')" style="background:#dc3545;">
+        Kunde löschen
+      </button>
+    </div>
+  `;
+}
+
+async function renameKunde(id, alterName) {
+  const neuerName = document.getElementById("newKundeName").value.trim();
+
+  if (!neuerName) {
+    alert("Kundenname eingeben.");
+    return;
+  }
+
+  await api("kunden?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({ name: neuerName })
+  });
+
+  await api("rollen?auftrag=eq." + encodeURIComponent(alterName), {
+    method: "PATCH",
+    body: JSON.stringify({ auftrag: neuerName })
+  });
+
+  await api("historie?auftrag=eq." + encodeURIComponent(alterName), {
+    method: "PATCH",
+    body: JSON.stringify({ auftrag: neuerName, bemerkung: neuerName })
+  });
+
+  alert("Kunde geändert");
+  location.reload();
+}
+
+async function deleteKunde(id, name) {
+  if (!confirm("Diesen Kunden wirklich löschen? Historie bleibt erhalten.")) return;
+
+  await api("kunden?id=eq." + id, { method: "DELETE" });
+
+  alert("Kunde gelöscht");
+  location.reload();
+}
   
 if (page === "statistik") showStatistik();
 else if (page === "typen") showTypen();
 else if (page === "auswahl") showAuswahl();
+else if (page === "kunden") showKunden();
 else if (page === "scanner") showScanner();
 else if (kennung) showDetail();
 else showList();
