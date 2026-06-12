@@ -496,7 +496,13 @@ statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
     </div>
   `;
 
-  Object.keys(statistik[monat][tag]).forEach(typ => {
+  Object.keys(statistik[monat][tag])
+  .filter(typ =>
+    typ !== "meter" &&
+    typ !== "kunden" &&
+    typ !== "tage"
+  )
+  .forEach(typ => {
 
     html += `
       <div style="
