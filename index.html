@@ -466,10 +466,6 @@ ${r.status === "Electrotherm" ? `
     placeholder="Verbrauch eingeben"
   >
 ` : ""}
-
-
-    <option ${r.status=="Im Lager" ? "selected" : ""}>Im Lager</option>
-    <option ${r.status=="Electrotherm" ? "selected" : ""}>Electrotherm</option>
   </select>
 
   ${r.status === "Im Lager" ? `
