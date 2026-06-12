@@ -404,11 +404,18 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
         <p><b>Status:</b> ${statusBadge(r.status)}</p>
       </div>
 
-      <div style="text-align:center;">
+            <div style="text-align:center;">
         <img
           src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
           style="max-width:220px;"
         >
+        <br>
+        <a
+          href="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl(r.kennung))}"
+          target="_blank"
+        >
+          QR-Code öffnen
+        </a>
       </div>
 
     </div>
