@@ -594,12 +594,14 @@ html += `
   </button>
 
   ${isAdmin ? `
-<button
-  onclick="deleteRolle(${r.id})"
-  style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
->
-  Rolle löschen
-</button>
+  <button
+    onclick="deleteRolle(${r.id})"
+    style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
+  >
+    Rolle löschen
+  </button>
+` : ""}
+
 </div>
 `;
 
