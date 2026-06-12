@@ -112,21 +112,20 @@ html += `
 if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
     html += `
-  <div
-    class="box"
-    onclick="location.href='?typ=${encodeURIComponent(t)}'"
-    style="
-      ${typen[t].meter < 50
-        ? 'border:3px solid #dc3545;background:#ffe5e5;'
-        : ''}
-     });
-}
-      <h3>${t}</h3>
-      <div class="big">${typen[t].meter} m</div>
-      <p>${typen[t].count} Rollen</p>
-      <p>Im Lager: ${typen[t].lager}</p>
-      <p>Electrotherm: ${typen[t].electro}</p>
-    </div>`;
+      <div
+        class="box"
+        onclick="location.href='?typ=${encodeURIComponent(t)}'"
+        style="${typen[t].meter < 50 ? 'border:3px solid #dc3545;background:#ffe5e5;' : ''}"
+      >
+        <h3 style="${typen[t].meter < 50 ? 'color:#dc3545;' : ''}">
+          ${t}
+        </h3>
+        <div class="big">${typen[t].meter} m</div>
+        <p>${typen[t].count} Rollen</p>
+        <p>Im Lager: ${typen[t].lager}</p>
+        <p>Electrotherm: ${typen[t].electro}</p>
+      </div>
+    `;
   });
 }
 html += `
