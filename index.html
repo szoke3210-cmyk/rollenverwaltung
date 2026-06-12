@@ -518,24 +518,31 @@ if (!historie.length) html += `<p>Noch keine Historie.</p>`;
   margin-bottom:10px;
 ">
 
-  <div style="display:flex;justify-content:space-between;">
-    <b>${new Date(h.datum).toLocaleString("de-DE")}</b>
-    <b>Rest: ${h.laenge || "-"} m</b>
-  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+  <b>${new Date(h.datum).toLocaleString("de-DE")}</b>
 
-  <div style="margin-top:6px;">
-    ${h.aktion}
-  </div>
+  ${h.aktion.includes("zurück") ? `
+    <div style="text-align:right;">
+      <div><b>Rest:</b> ${h.laenge || "-"} m</div>
+
+      <div style="
+        color:#dc3545;
+        font-weight:bold;
+        margin-top:4px;
+      ">
+        Verbrauch: ${h.verbrauch || 0} m
+      </div>
+    </div>
+  ` : ""}
+</div>
+
+<div style="margin-top:6px;">
+  ${(h.aktion || "").replace(/\s*\|\s*Auftrag:.*?(?=\s*\||$)/, "")}
+</div>
 
   ${h.auftrag ? `
     <div>
       <b>Kunde:</b> ${h.auftrag}
-    </div>
-  ` : ""}
-
-  ${h.verbrauch !== null && h.verbrauch !== undefined ? `
-    <div>
-      <b>Verbrauch:</b> ${h.verbrauch} m
     </div>
   ` : ""}
 
