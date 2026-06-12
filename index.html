@@ -97,8 +97,6 @@ if (!typFilter) {
   html += `
     <div class="box">
       <button onclick="location.href='?page=statistik'">📊 Statistik</button>
-      <button onclick="location.href='?page=typen'">Typen verwalten</button>
-      <button onclick="location.href='?page=auswahl'">Rolle bearbeiten</button>
       <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
     </div>
   `;
@@ -124,6 +122,9 @@ if (!typFilter) {
         <p>${typen[t].count} Rollen</p>
         <p>Im Lager: ${typen[t].lager}</p>
         <p>Electrotherm: ${typen[t].electro}</p>
+        <button onclick="event.stopPropagation(); location.href='?page=typen'">
+  Typ bearbeiten
+</button>
       </div>
     `;
   });
@@ -159,7 +160,11 @@ html += `
     <h2>${typFilter ? "Rollen von Typ " + typFilter : "Alle Rollen"}</h2>
     <input id="search" placeholder="Suchen..." onkeyup="filterTable()">
   </div>
+<button onclick="location.href='?page=auswahl'">
+  Rolle bearbeiten
+</button>
 
+<br><br>
   <table id="rollenTable">
     <tr><th>Kennung</th><th>Bemerkung</th><th>Typ</th><th>Länge</th><th>Verlust</th><th>Status</th><th>Auftrag</th></tr>
 `;
