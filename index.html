@@ -514,7 +514,7 @@ statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
             border-radius:6px;
             font-weight:bold;
           ">
-            ${statistik[monat][tag][typ].meter.toFixed(2)} m
+            ${Number(statistik[monat][tag][typ].meter || 0).toFixed(2)} m
           </div>
         </div>
     `;
@@ -529,7 +529,7 @@ statistik[monat][tag][h.typ].kunden[kunde] += Number(h.verbrauch);
           border-radius:6px;
         ">
           <b>${kunde}</b>:
-          ${statistik[monat][tag][typ].kunden[kunde].toFixed(2)} m
+          ${Number(statistik[monat][tag][typ].kunden[kunde] || 0).toFixed(2)} m
         </div>
       `;
     });
