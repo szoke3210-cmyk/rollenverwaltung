@@ -422,27 +422,24 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
   </div>
 `;
 
-<p><b>Typ:</b> ${r.typ}</p>
-<p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
-<p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
-<p><b>Gesamtverlust:</b> ${verlust} m</p>
-<p><b>Status:</b> ${statusBadge(r.status)}</p>
+html += `
+<div class="box">
+  <label>Bemerkung</label>
+  <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
 
-<label>Bemerkung</label>
-<textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
+  <button onclick="saveBemerkung(${r.id})">
+    Bemerkung speichern
+  </button>
 
-<button onclick="saveBemerkung(${r.id})">
-  Bemerkung speichern
-</button>
-
-<button
-  onclick="deleteRolle(${r.id})"
-  style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
->
-  Rolle löschen
-</button>
+  <button
+    onclick="deleteRolle(${r.id})"
+    style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
+  >
+    Rolle löschen
+  </button>
+</div>
 `;
-  
+
 html += `
 <div class="box">
   <h3>Rolle ändern</h3>
