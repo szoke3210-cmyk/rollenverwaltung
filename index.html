@@ -550,28 +550,20 @@ document.getElementById("app").innerHTML = html;
   const statistik = window.statistikData || {};
   let csv = "Monat;Tag;Typ;Kunde;Verbrauch\n";
 
-  Object.keys(statistik).forEach(monat => {
-
-  Object.keys(statistik[monat]).forEach(tag => {
-
-    Object.keys(statistik[monat][tag]).forEach(typ => {
-
-      Object.keys(statistik[monat][tag][typ].kunden).forEach(kunde => {
-
+  Object.keys(statistik || {}).forEach(monat => {
+  Object.keys(statistik[monat] || {}).forEach(tag => {
+    Object.keys(statistik[monat][tag] || {}).forEach(typ => {
+      Object.keys((statistik[monat][tag][typ] || {}).kunden || {}).forEach(kunde => {
         csv +=
           monat + ";" +
           tag + ";" +
           typ + ";" +
           kunde + ";" +
-          statistik[monat][tag][typ].kunden[kunde] +
+          Number(statistik[monat][tag][typ].kunden[kunde] || 0).toFixed(2) +
           "\n";
-
       });
-
     });
-
   });
-
 });
     
   const blob = new Blob([csv], {
