@@ -122,9 +122,6 @@ if (!typFilter) {
         <p>${typen[t].count} Rollen</p>
         <p>Im Lager: ${typen[t].lager}</p>
         <p>Electrotherm: ${typen[t].electro}</p>
-        <button onclick="event.stopPropagation(); location.href='?page=typen'">
-  Typ bearbeiten
-</button>
       </div>
     `;
   });
@@ -162,6 +159,10 @@ html += `
   </div>
 <button onclick="location.href='?page=auswahl'">
   Rolle bearbeiten
+</button>
+
+<button onclick="location.href='?page=typen'">
+  Typ bearbeiten
 </button>
 
 <br><br>
