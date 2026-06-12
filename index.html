@@ -517,8 +517,9 @@ async function speichern(id) {
   const r = daten[0];
 
   const verbrauchInput = document.getElementById("verbrauch");
-  const verbrauch = verbrauchInput ? Number(verbrauchInput.value) : 0;
-
+  const verbrauchText = verbrauchInput ? verbrauchInput.value.trim() : "";
+const verbrauch = verbrauchText === "" ? null : Number(verbrauchText);
+  
   let status = window.forceStatus || r.status;
   
   const auftragSelect = document.getElementById("auftragSelect").value;
@@ -550,7 +551,12 @@ async function speichern(id) {
   return;
 }
 
-  if (status === "Im Lager" && r.status === "Electrotherm" && verbrauch < 0) {
+  if (status === "Im Lager" && r.status === "Electrotherm" && verbrauchText === "") {
+  alert("Bitte Verbrauch eintragen. Wenn nichts verbraucht wurde, 0 eingeben.");
+  return;
+}
+
+if (verbrauch !== null && verbrauch < 0) {
   alert("Verbrauch darf nicht negativ sein.");
   return;
 }
