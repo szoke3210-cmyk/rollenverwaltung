@@ -350,12 +350,11 @@ async function showStatistik() {
 
     const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
 
-if (!statistik[monat][h.typ].kunden[kunde]) {
-  statistik[monat][h.typ].kunden[kunde] = 0;
-}
-
-statistik[monat][h.typ].kunden[kunde] += Number(h.verbrauch);
+    if (!statistik[monat][h.typ].kunden[kunde]) {
+      statistik[monat][h.typ].kunden[kunde] = 0;
     }
+
+    statistik[monat][h.typ].kunden[kunde] += Number(h.verbrauch);
   });
 
   let html = `<div class="box"><h2>Statistik</h2></div>`;
