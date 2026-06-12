@@ -340,23 +340,57 @@ async function deleteTyp(typ) {
   
 async function showStatistik() {
   const historie = await api("historie?select=*");
-
+  const selectedKunde = document.getElementById("kundeFilter") 
+  ? document.getElementById("kundeFilter").value 
+  : "";
+  const kundenListe = [...new Set(
+  historie
+    .map(h => h.auftrag || h.bemerkung)
+    .filter(Boolean)
+)].sort();
+let kundenFilter = `
+  <select id="kundeFilter" onchange="showStatistik()">
+    <option value="" ${selectedKunde === "" ? "selected" : ""}>
+      Alle Kunden
+    </option>
+`;
   window.statistikData = {};
+  kundenListe.forEach(k => {
+  kundenFilter += `
+    <option
+      value="${k}"
+      ${selectedKunde === k ? "selected" : ""}
+    >
+      ${k}
+    </option>
+  `;
+});
+
+kundenFilter += `</select>`;
+  
 let statistik = window.statistikData;
 
   historie.forEach(h => {
     if (!h.verbrauch || h.verbrauch <= 0) return;
+    const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
+
+if (selectedKunde && kunde !== selectedKunde) return;
 
     const monat = new Date(h.datum).toISOString().slice(0, 7);
+    const tag = new Date(h.datum).toLocaleDateString("de-DE");
 
     if (!statistik[monat]) statistik[monat] = {};
     if (!statistik[monat][h.typ]) {
-      statistik[monat][h.typ] = { meter: 0, kunden: {} };
+      statistik[monat][h.typ] = { meter: 0, kunden: {}, tage: {} };
     }
 
     statistik[monat][h.typ].meter += Number(h.verbrauch);
+    
+    if (!statistik[monat][h.typ].tage[tag]) {
+  statistik[monat][h.typ].tage[tag] = 0;
+}
 
-    const kunde = h.auftrag || h.bemerkung || "Ohne Kunde";
+statistik[monat][h.typ].tage[tag] += Number(h.verbrauch);
 
     if (!statistik[monat][h.typ].kunden[kunde]) {
       statistik[monat][h.typ].kunden[kunde] = 0;
@@ -368,6 +402,14 @@ let statistik = window.statistikData;
   let html = `
   <div class="box">
     <h2>Statistik</h2>
+
+    ${kundenFilter}
+
+    <button onclick="downloadStatistikCSV()">
+      📊 Excel Export
+    </button>
+  </div>
+`;
     <button onclick="downloadStatistikCSV()">
       📊 Excel Export
     </button>
@@ -398,6 +440,24 @@ let statistik = window.statistikData;
     </div>
 `;
 
+html += `<h5>Tage</h5>`;
+
+Object.keys(statistik[monat][typ].tage).forEach(tag => {
+  html += `
+    <div style="
+      margin-left:20px;
+      padding:6px;
+      margin-top:4px;
+      background:#fff7ed;
+      border-radius:6px;
+    ">
+      <b>${tag}</b>: ${statistik[monat][typ].tage[tag].toFixed(2)} m
+    </div>
+  `;
+});
+
+html += `<h5>Kunden</h5>`;
+      
       Object.keys(statistik[monat][typ].kunden).forEach(kunde => {
   html += `
     <div style="
