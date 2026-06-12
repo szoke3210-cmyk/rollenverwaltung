@@ -1072,7 +1072,16 @@ async function saveRolleEditor(id) {
     <div class="box">
       <h2>Kunde bearbeiten</h2>
 
-      <select id="kundeEditSelect" onchange="loadKundeEditor()">
+<div class="box">
+  <label>Neuer Kunde</label>
+  <input id="neuerKundeName" placeholder="Kundenname">
+
+  <button onclick="addKunde()">
+    Kunde hinzufügen
+  </button>
+</div>
+
+<select id="kundeEditSelect" onchange="loadKundeEditor()">
         <option value="">Kunde auswählen...</option>
   `;
 
@@ -1157,6 +1166,33 @@ async function deleteKunde(id, name) {
   await api("kunden?id=eq." + id, { method: "DELETE" });
 
   alert("Kunde gelöscht");
+  location.reload();
+}
+  async function addKunde() {
+  const name = document.getElementById("neuerKundeName").value.trim();
+
+  if (!name) {
+    alert("Kundenname eingeben.");
+    return;
+  }
+
+  const vorhanden = await api(
+    "kunden?name=eq." + encodeURIComponent(name) + "&select=id"
+  );
+
+  if (vorhanden.length) {
+    alert("Kunde existiert bereits.");
+    return;
+  }
+
+  await api("kunden", {
+    method: "POST",
+    body: JSON.stringify({
+      name: name
+    })
+  });
+
+  alert("Kunde hinzugefügt");
   location.reload();
 }
   
