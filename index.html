@@ -53,6 +53,7 @@ const params = new URLSearchParams(window.location.search);
 const kennung = params.get("id");
 const typFilter = params.get("typ");
 const page = params.get("page");
+let isAdmin = localStorage.getItem("adminMode") === "true";
   
 async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, { headers, ...options });
@@ -72,6 +73,23 @@ function qrUrl(kennung) {
   return location.origin + location.pathname + "?id=" + encodeURIComponent(kennung);
 }
 
+function toggleAdmin() {
+  if (isAdmin) {
+    localStorage.setItem("adminMode", "false");
+    alert("Admin Modus ausgeschaltet");
+  } else {
+    const pass = prompt("Admin Passwort:");
+    if (pass === "1234") {
+      localStorage.setItem("adminMode", "true");
+      alert("Admin Modus eingeschaltet");
+    } else {
+      alert("Falsches Passwort");
+    }
+  }
+
+  location.reload();
+}
+  
 async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
 
@@ -101,6 +119,12 @@ if (!typFilter) {
     <div class="box">
       <button onclick="location.href='?page=statistik'">📊 Statistik</button>
       <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
+      <button
+  onclick="toggleAdmin()"
+  style="width:auto;padding:5px 8px;font-size:12px;"
+>
+  ${isAdmin ? "Admin aus" : "Admin"}
+</button>
     </div>
   `;
 }
@@ -110,10 +134,11 @@ html += `
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
 
     ${!typFilter ? `
-      <button onclick="location.href='?page=typen'">
-        Typ bearbeiten
-      </button>
-    ` : ""}
+      ${isAdmin ? `
+  <button onclick="location.href='?page=typen'">
+    Typ bearbeiten
+  </button>
+` : ""}
 
     <div class="grid">
 `;
@@ -141,7 +166,7 @@ html += `
   </div>
 `;
 
-if (!typFilter) {
+if (!typFilter && isAdmin) {
   html += `
   <div class="box">
     <h2>Neue Rolle hinzufügen</h2>
@@ -167,9 +192,10 @@ html += `
     <h2>${typFilter ? "Rollen von Typ " + typFilter : "Alle Rollen"}</h2>
     <input id="search" placeholder="Suchen..." onkeyup="filterTable()">
   </div>
-<button onclick="location.href='?page=auswahl'">
-  Rolle bearbeiten
-</button>
+${isAdmin ? `
+  <button onclick="location.href='?page=auswahl'">
+    Rolle bearbeiten
+  </button>
 
 <br><br>
   <table id="rollenTable">
@@ -570,12 +596,13 @@ html += `
     Bemerkung speichern
   </button>
 
-  <button
-    onclick="deleteRolle(${r.id})"
-    style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
-  >
-    Rolle löschen
-  </button>
+  ${isAdmin ? `
+<button
+  onclick="deleteRolle(${r.id})"
+  style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
+>
+  Rolle löschen
+</button>
 </div>
 `;
 
