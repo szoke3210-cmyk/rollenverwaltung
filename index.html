@@ -106,11 +106,6 @@ html += `
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
     <div class="grid">
-    <button onclick="location.href='?page=typen'">
-  Typ bearbeiten
-</button>
-
-<br><br>
   `;
 if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
