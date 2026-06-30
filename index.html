@@ -916,6 +916,8 @@ async function deleteRolle(id) {
 
       <button onclick="location.href='index.html'">
         Zur Übersicht
+        <button onclick="deleteRolle(${r.id})" style="background:#dc3545;">
+  Rolle löschen
       </button>
     </div>
   `;
@@ -1005,7 +1007,6 @@ async function saveRolleEditor(id) {
   const typ = document.getElementById("editTyp").value.trim();
   const ursprung = Number(document.getElementById("editUrsprung").value);
   const aktuell = Number(document.getElementById("editAktuell").value);
-  const status = document.getElementById("editStatus").value;
   const bemerkung = document.getElementById("editBemerkung").value;
   const auftrag = document.getElementById("editAuftrag").value;
 
@@ -1026,45 +1027,9 @@ async function saveRolleEditor(id) {
       typ: typ,
       urspruengliche_laenge: ursprung,
       aktuelle_laenge: aktuell,
-      status: status,
+      status: "Im Lager",
       bemerkung: bemerkung,
       auftrag: auftrag
-    })
-  });
-
-  alert("Rolle geändert");
-  location.reload();
-}
-
-async function saveRolleEditor(id) {
-  const kennung = document.getElementById("editKennung").value.trim();
-  const typ = document.getElementById("editTyp").value.trim();
-  const ursprung = Number(document.getElementById("editUrsprung").value);
-  const aktuell = Number(document.getElementById("editAktuell").value);
-  const status = document.getElementById("editStatus").value;
-  const bemerkung = document.getElementById("editBemerkung").value;
-  const auftrag = document.getElementById("editAuftrag").value;
-
-  if (!kennung || !typ) {
-    alert("Kennung und Typ ausfüllen.");
-    return;
-  }
-
-  if (ursprung < 0 || aktuell < 0) {
-    alert("Länge darf nicht negativ sein.");
-    return;
-  }
-
-  await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      kennung,
-      typ,
-      urspruengliche_laenge: ursprung,
-      aktuelle_laenge: aktuell,
-      status,
-      bemerkung,
-      auftrag
     })
   });
 
