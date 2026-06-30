@@ -42,13 +42,25 @@ Rollenverwaltung
 const SUPABASE_URL = "https://fkjpuhijmbrxazowbbms.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4QHY2mfUoUmHxfS7dU8fGQ_Deh6bDbu";
 
+const typFarben = {
+  "A/A": ["#000000", "#ff0000"],
+  "A/C": ["#000000", "#00aa00"],
+  "A/E": ["#000000", "#0066ff"],
+  "B/E": ["#ffffff", "#0066ff"],
+  "C/A": ["#8B4513", "#ff0000"],
+  "C/F": ["#8B4513", "#808080"]
+};
+
+function getTypFarben(typ) {
+  return typFarben[typ] || ["#dddddd", "#999999"];
+}
+
 const headers = {
   "apikey": SUPABASE_KEY,
   "Authorization": "Bearer " + SUPABASE_KEY,
   "Content-Type": "application/json",
   "Prefer": "return=representation"
 };
-
 const params = new URLSearchParams(window.location.search);
 const kennung = params.get("id");
 const typFilter = params.get("typ");
@@ -72,7 +84,62 @@ function statusBadge(status) {
 function qrUrl(kennung) {
   return location.origin + location.pathname + "?id=" + encodeURIComponent(kennung);
 }
+  
+function downloadQRMitFarben(kennung, typ, url) {
+  const farben = getTypFarben(typ);
 
+  const canvas = document.createElement("canvas");
+  canvas.width = 900;
+  canvas.height = 1000;
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(450, 420, 380, 0, Math.PI * 2);
+  ctx.clip();
+
+  ctx.fillStyle = farben[0];
+  ctx.fillRect(70, 40, 380, 760);
+
+  ctx.fillStyle = farben[1];
+  ctx.fillRect(450, 40, 380, 760);
+
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(450, 420, 260, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+
+  const qrImg = new Image();
+  qrImg.crossOrigin = "anonymous";
+  qrImg.src =
+    "https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=" +
+    encodeURIComponent(url);
+
+  qrImg.onload = function () {
+    ctx.drawImage(qrImg, 240, 210, 420, 420);
+
+    ctx.fillStyle = "#000000";
+    ctx.textAlign = "center";
+
+    ctx.font = "bold 54px Arial";
+    ctx.fillText(kennung, 450, 860);
+
+    ctx.font = "bold 42px Arial";
+    ctx.fillText(typ, 450, 925);
+
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = "QR-" + kennung + ".png";
+    a.click();
+  };
+}
+  
 function toggleAdmin() {
   if (isAdmin) {
     localStorage.setItem("adminMode", "false");
@@ -149,20 +216,33 @@ html += `
   
 if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
-    html += `
+
+  const farben = getTypFarben(t);
+
+  html += `
       <div
-        class="box"
-        onclick="location.href='?typ=${encodeURIComponent(t)}'"
-        style="${typen[t].meter < 50 ? 'border:3px solid #dc3545;background:#ffe5e5;' : ''}"
-      >
-        <h3 style="${typen[t].meter < 50 ? 'color:#dc3545;' : ''}">
-          ${t}
-        </h3>
-        <div class="big">${typen[t].meter} m</div>
-        <p>${typen[t].count} Rollen</p>
-        <p>Im Lager: ${typen[t].lager}</p>
-        <p>Electrotherm: ${typen[t].electro}</p>
-      </div>
+  class="box"
+  onclick="location.href='?typ=${encodeURIComponent(t)}'"
+  style="
+    background: linear-gradient(90deg, ${farben[0]} 50%, ${farben[1]} 50%);
+    cursor:pointer;
+  "
+>
+  <div style="
+      background:rgba(255,255,255,0.92);
+      border-radius:12px;
+      padding:12px;
+      color:#111;
+  ">
+      <h3>${t}</h3>
+
+      <div class="big">${typen[t].meter} m</div>
+
+      <p>${typen[t].count} Rollen</p>
+      <p>Im Lager: ${typen[t].lager}</p>
+      <p>Electrotherm: ${typen[t].electro}</p>
+  </div>
+</div>
     `;
   });
 }
@@ -596,19 +676,20 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
         <p><b>Status:</b> ${statusBadge(r.status)}</p>
       </div>
 
-            <div style="text-align:center;">
-        <img
-          src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
-          style="max-width:220px;"
-        >
-        <br>
-        <a
-          href="https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(qrUrl(r.kennung))}"
-          target="_blank"
-        >
-          QR-Code öffnen
-        </a>
-      </div>
+           <div style="text-align:center;">
+  <img
+    src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
+    style="max-width:220px;"
+  >
+  <br>
+
+  <button
+    onclick="downloadQRMitFarben('${r.kennung}', '${r.typ}', '${qrUrl(r.kennung)}')"
+    style="margin-top:10px;"
+  >
+    QR-Code herunterladen
+  </button>
+</div>
 
     </div>
   </div>
