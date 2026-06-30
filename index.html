@@ -103,18 +103,35 @@ function downloadQRMitFarben(kennung, typ, url) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(450, 420, 380, 0, Math.PI * 2);
-  ctx.clip();
+  // Bal félkör
+ctx.beginPath();
+ctx.moveTo(450, 420);
+ctx.arc(450, 420, 380, Math.PI / 2, Math.PI * 1.5, false);
+ctx.closePath();
+ctx.fillStyle = farben[0];
+ctx.fill();
 
-  ctx.fillStyle = farben[0];
-  ctx.fillRect(70, 40, 380, 760);
+// Jobb félkör
+ctx.beginPath();
+ctx.moveTo(450, 420);
+ctx.arc(450, 420, 380, Math.PI * 1.5, Math.PI / 2, false);
+ctx.closePath();
+ctx.fillStyle = farben[1];
+ctx.fill();
 
-  ctx.fillStyle = farben[1];
-  ctx.fillRect(450, 40, 380, 760);
+// Külső kör kerete
+ctx.beginPath();
+ctx.arc(450, 420, 380, 0, Math.PI * 2);
+ctx.strokeStyle = "#888";
+ctx.lineWidth = 4;
+ctx.stroke();
 
-  ctx.restore();
+  // Külső kör szürke kerete (hogy a fehér fél is látszódjon)
+ctx.beginPath();
+ctx.arc(450, 420, 380, 0, Math.PI * 2);
+ctx.strokeStyle = "#999999";
+ctx.lineWidth = 4;
+ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(450, 420, 260, 0, Math.PI * 2);
