@@ -43,15 +43,21 @@ const SUPABASE_URL = "https://fkjpuhijmbrxazowbbms.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4QHY2mfUoUmHxfS7dU8fGQ_Deh6bDbu";
 
 const typFarben = {
-  "A/A": ["#000000", "#ff0000"],
-  "A/C": ["#000000", "#00aa00"],
-  "A/E": ["#000000", "#0066ff"],
-  "B/E": ["#ffffff", "#0066ff"],
-  "C/A": ["#8B4513", "#ff0000"],
-  "C/F": ["#8B4513", "#808080"]
+  "A/A/3": ["#000000", "#ff0000"],
+  "A/A/4,5": ["#000000", "#ff0000"],
+  "A/C/3": ["#000000", "#00aa00"],
+  "A/C/4,5": ["#000000", "#00aa00"],
+  "A/E/4,5": ["#000000", "#0066ff"],
+  "A/E/3": ["#000000", "#0066ff"],
+  "B/E/4,5": ["#ffffff", "#0066ff"],
+  "B/E/3": ["#ffffff", "#0066ff"],
+  "C/A/4,5": ["#8B4513", "#ff0000"],
+  "C/F/4,5": ["#8B4513", "#808080"]
 };
 
 function getTypFarben(typ) {
+  typ = (typ || "").trim();
+  console.log("TYP:", typ, "FARBEN:", typFarben[typ]);
   return typFarben[typ] || ["#dddddd", "#999999"];
 }
 
