@@ -1164,13 +1164,19 @@ function showScanner() {
             <label>Auftrag</label>
       <input id="editAuftrag" value="${r.auftrag || ""}">
 
-      <button onclick="saveRolleEditor(${r.id})">
+            <button onclick="saveRolleEditor(${r.id})">
         Änderungen speichern
       </button>
 
-      <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
-        Rolle löschen
-      </button>
+      ${isAdmin ? `
+        <button onclick="markRolleVerbraucht(${r.id})" style="background:#f0ad4e;color:white;margin-left:10px;">
+          Als verbraucht markieren
+        </button>
+
+        <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
+          Rolle löschen
+        </button>
+      ` : ""}
     </div>
   `;
 }
