@@ -454,46 +454,38 @@ async function neueRolle() {
 }
 
 async function markRolleVerbraucht(id) {
-
   if (!confirm("Diese Rolle als verbraucht markieren?")) return;
 
-  const rolle = rollen.find(r => r.id === id);
+  const daten = await api("rollen?id=eq." + id + "&select=*");
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rollen?id=eq.${id}`, {
+  if (!daten.length) {
+    alert("Rolle nicht gefunden.");
+    return;
+  }
+
+  const rolle = daten[0];
+
+  await api("rollen?id=eq." + id, {
     method: "PATCH",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json"
-    },
     body: JSON.stringify({
       status: "Verbraucht"
     })
   });
 
-  if (!res.ok) {
-    alert("Fehler!");
-    return;
-  }
-
-  await fetch(`${SUPABASE_URL}/rest/v1/historie`, {
+  await api("historie", {
     method: "POST",
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json"
-    },
     body: JSON.stringify({
       rollen_id: id,
       datum: new Date().toISOString(),
       aktion: "Verbraucht",
       laenge: rolle.aktuelle_laenge,
-      bemerkung: "Archiviert"
+      verbrauch: 0,
+      bemerkung: "Rolle wurde archiviert"
     })
   });
 
-  alert("Rolle archiviert.");
-  loadRollen();
+  alert("Rolle wurde als verbraucht markiert.");
+  showAuswahl();
 }
   async function loadTypEditor() {
   const typ = document.getElementById("typSelect").value;
