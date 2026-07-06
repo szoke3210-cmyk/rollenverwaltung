@@ -402,7 +402,7 @@ async function neueRolle() {
       kennung, typ,
       urspruengliche_laenge: laenge,
       aktuelle_laenge: laenge,
-      status: "Im Lager",
+      status: "Noch nicht freigegeben",
       bemerkung
     })
   });
@@ -1047,15 +1047,59 @@ async function deleteRolle(id) {
   alert("Rolle gelöscht");
   location.href = "index.html";
 }
-  
+  async function rolleFreigeben(id) {
+  if (!confirm("Diese Rolle freigeben?")) return;
+
+  await api("rollen?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status: "Im Lager"
+    })
+  });
+
+  await api("historie", {
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: id,
+      datum: new Date().toISOString(),
+      aktion: "Freigegeben",
+      bemerkung: "Rolle wurde freigegeben"
+    })
+  });
+
+  alert("Rolle wurde freigegeben.");
+  showAuswahl();
+}
   async function showAuswahl() {
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
+    const filter = document.getElementById("rolleFilter")?.value || "aktiv";
+
+if (filter === "aktiv") {
+  rollen = rollen.filter(r =>
+    r.status === "Im Lager" || r.status === "Electrotherm"
+  );
+}
+
+if (filter === "nichtfrei") {
+  rollen = rollen.filter(r => r.status === "Noch nicht freigegeben");
+}
+
+if (filter === "archiv") {
+  rollen = rollen.filter(r => r.status === "Verbraucht");
+}
 
   rollen = rollen.filter(r => r.status !== "Verbraucht");
 
   let html = `
     <div class="box">
       <h2>Rolle bearbeiten</h2>
+      <label>Ansicht</label>
+<select id="rolleFilter" onchange="showAuswahl()">
+  <option value="aktiv">Aktive Rollen</option>
+  <option value="nichtfrei">Noch nicht freigegeben</option>
+  <option value="archiv">Archivierte Rollen</option>
+  <option value="alle">Alle Rollen</option>
+</select>
 
       <select id="rolleSelect" onchange="loadRolleEditor()">
         <option value="">Rolle auswählen...</option>
@@ -1158,6 +1202,11 @@ function showScanner() {
       </button>
 
       ${isAdmin ? `
+      ${r.status === "Noch nicht freigegeben" ? `
+  <button onclick="rolleFreigeben(${r.id})" style="background:#28a745;color:white;margin-left:10px;">
+    Freigeben
+  </button>
+` : ""}
         <button onclick="markRolleVerbraucht(${r.id})" style="background:#f0ad4e;color:white;margin-left:10px;">
           Als verbraucht markieren
         </button>
