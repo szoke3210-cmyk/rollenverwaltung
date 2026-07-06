@@ -790,17 +790,14 @@ html += `
   </button>
 
   ${isAdmin ? `
-  onclick="markRolleVerbraucht(${r.id})">
+  <button onclick="markRolleVerbraucht(${r.id})" style="background:#f0ad4e;color:white;margin-left:10px;">
     Als verbraucht markieren
-</button>
-  <button
-    onclick="deleteRolle(${r.id})"
-    style="width:auto;padding:6px 10px;font-size:12px;background:#dc3545;"
-  >
+  </button>
+
+  <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
     Rolle löschen
   </button>
 ` : ""}
-
 </div>
 `;
 
