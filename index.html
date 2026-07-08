@@ -207,7 +207,13 @@ async function showList() {
     query = "rollen?typ=eq." + encodeURIComponent(typFilter) + "&select=*&order=kennung.asc";
   }
 
-  const rollen = await api(query);
+  let rollen = await api(query);
+  if (!isAdmin) {
+  rollen = rollen.filter(r =>
+    r.status === "Im Lager" ||
+    r.status === "Electrotherm"
+  );
+}
 
   let alle = await api("rollen?select=*");
   let typen = {};
@@ -225,12 +231,7 @@ async function showList() {
   let html = ``;
 
   
-if (!isAdmin) {
-  rollen = rollen.filter(r =>
-    r.status === "Im Lager" ||
-    r.status === "Electrotherm"
-  );
-}
+
   
 if (!typFilter) {
   html += `
