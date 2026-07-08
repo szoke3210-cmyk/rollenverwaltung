@@ -320,7 +320,7 @@ if (!typFilter && isAdmin) {
     <input id="newLaenge" type="number" step="0.01" placeholder="Länge in Meter">
     <label>Status</label>
 <select id="newStatus">
-  <option value="Noch nicht freigegeben">Noch nicht freigegeben</option>
+  <option value="Nicht freigegeben">Nicht freigegeben</option>
   <option value="Im Lager">Im Lager</option>
   <option value="Verbraucht">Verbraucht</option>
 </select>
@@ -1097,7 +1097,7 @@ if (filter === "aktiv") {
 }
 
 if (filter === "nichtfrei") {
-  rollen = rollen.filter(r => r.status === "Noch nicht freigegeben");
+  rollen = rollen.filter(r => r.status === "Nicht freigegeben");
 }
 
 if (filter === "archiv") {
@@ -1112,7 +1112,7 @@ if (filter === "archiv") {
       <label>Ansicht</label>
 <select id="rolleFilter" onchange="showAuswahl()">
   <option value="aktiv">Aktive Rollen</option>
-  <option value="nichtfrei">Noch nicht freigegeben</option>
+  <option value="nichtfrei">Nicht freigegeben</option>
   <option value="archiv">Archivierte Rollen</option>
   <option value="alle">Alle Rollen</option>
 </select>
@@ -1209,7 +1209,7 @@ function showScanner() {
 
       <label>Status</label>
 <select id="editStatus">
-  <option value="Noch nicht freigegeben" ${r.status === "Noch nicht freigegeben" ? "selected" : ""}>Noch nicht freigegeben</option>
+  <option value="Nicht freigegeben" ${r.status === "Nicht freigegeben" ? "selected" : ""}>Nicht freigegeben</option>
   <option value="Im Lager" ${r.status === "Im Lager" ? "selected" : ""}>Im Lager</option>
   <option value="Verbraucht" ${r.status === "Verbraucht" ? "selected" : ""}>Verbraucht</option>
 </select>
@@ -1225,7 +1225,7 @@ function showScanner() {
       </button>
 
       ${isAdmin ? `
-      ${r.status === "Noch nicht freigegeben" ? `
+      ${r.status === "Nicht freigegeben" ? `
   <button onclick="rolleFreigeben(${r.id})" style="background:#28a745;color:white;margin-left:10px;">
     Freigeben
   </button>
