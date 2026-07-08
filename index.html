@@ -317,6 +317,12 @@ if (!typFilter && isAdmin) {
 
     <input id="newTyp" placeholder="Neuer Typ z.B. ABC123" style="display:none">
     <input id="newLaenge" type="number" step="0.01" placeholder="Länge in Meter">
+    <label>Status</label>
+<select id="newStatus">
+  <option value="Noch nicht freigegeben">Noch nicht freigegeben</option>
+  <option value="Im Lager">Im Lager</option>
+  <option value="Verbraucht">Verbraucht</option>
+</select>
     <textarea id="newBemerkung" placeholder="Bemerkung"></textarea>
     <button class="green" onclick="neueRolle()">Neue Rolle speichern</button>
   </div>
@@ -405,21 +411,16 @@ async function neueRolle() {
   }
 
   const data = await api("rollen", {
-    method: "POST",
-    body: JSON.stringify({
-      kennung, typ,
-      urspruengliche_laenge: laenge,
-      aktuelle_laenge: laenge,
-      status: document.getElementById("newStatus").value,
-      <label>Status</label>
-<select id="newStatus">
-  <option value="Noch nicht freigegeben">Noch nicht freigegeben</option>
-  <option value="Im Lager">Im Lager</option>
-  <option value="Verbraucht">Verbraucht</option>
-</select>
-      bemerkung
-    })
-  });
+  method: "POST",
+  body: JSON.stringify({
+    kennung,
+    typ,
+    urspruengliche_laenge: laenge,
+    aktuelle_laenge: laenge,
+    status: document.getElementById("newStatus").value,
+    bemerkung
+  })
+});
 
   if (data.length) {
     await api("historie", {
