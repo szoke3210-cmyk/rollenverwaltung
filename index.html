@@ -91,9 +91,32 @@ const params = new URLSearchParams(window.location.search);
 const kennung = params.get("id");
 const typFilter = params.get("typ");
 const page = params.get("page");
+
 let isAdmin = localStorage.getItem("adminMode") === "true";
+let mitarbeiterMode = localStorage.getItem("mitarbeiterMode") === "true";
+const MITARBEITER_PIN = "2580";
   
-async function api(path, options = {}) {
+function toggleMitarbeiter() {
+
+  if (mitarbeiterMode) {
+    localStorage.setItem("mitarbeiterMode", "false");
+    alert("Mitarbeiter Modus ausgeschaltet");
+    location.reload();
+    return;
+  }
+
+  const pin = prompt("Mitarbeiter PIN:");
+
+  if (pin === MITARBEITER_PIN) {
+    localStorage.setItem("mitarbeiterMode", "true");
+    alert("Mitarbeiter Modus eingeschaltet");
+    location.reload();
+  } else {
+    alert("Falscher PIN");
+  }
+}
+  
+  async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, { headers, ...options });
   if (!res.ok) {
     alert("Fehler: " + await res.text());
@@ -337,12 +360,18 @@ html += `
   </div>
 
   ${isAdmin ? `
-    <button onclick="location.href='?page=auswahl'">
-      Rolle bearbeiten
-    </button>
+  <button onclick="location.href='?page=auswahl'">
+    Rolle bearbeiten
+  </button>
 
-    <br><br>
-  ` : ""}
+  <br><br>
+` : ""}
+
+<button onclick="toggleMitarbeiter()">
+  ${mitarbeiterMode ? "Mitarbeiter Logout" : "Mitarbeiter Login"}
+</button>
+
+<br><br>
 `;
 
 html += `
@@ -854,18 +883,17 @@ ${r.status === "Electrotherm" ? `
 
   <input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
 `}
-${r.status === "Im Lager" ? `
+${(isAdmin || mitarbeiterMode) && r.status === "Im Lager" ? `
   <button class="orange" onclick="zuElectrotherm(${r.id})">
     Zu Electrotherm senden
   </button>
 ` : ""}
 
-${r.status === "Electrotherm" ? `
+${(isAdmin || mitarbeiterMode) && r.status === "Electrotherm" ? `
   <button class="green" onclick="zurueck(${r.id})">
     Als zurückgekommen markieren
   </button>
 ` : ""}
-</div>
 
 <div class="box"><h3>Historie</h3>
 `;
@@ -1032,11 +1060,19 @@ if (verbrauch !== null && verbrauch < 0) {
 }
 
 async function zuElectrotherm(id) {
+  if (!isAdmin && !mitarbeiterMode) {
+  alert("Keine Berechtigung.");
+  return;
+}
   window.forceStatus = "Electrotherm";
   await speichern(id);
 }
 
 async function zurueck(id) {
+  if (!isAdmin && !mitarbeiterMode) {
+  alert("Keine Berechtigung.");
+  return;
+}
   window.forceStatus = "Im Lager";
   await speichern(id);
 }
