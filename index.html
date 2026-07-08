@@ -1088,7 +1088,7 @@ async function deleteRolle(id) {
 }
   async function showAuswahl() {
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
-    const filter = document.getElementById("rolleFilter")?.value || "aktiv";
+    const filter = localStorage.getItem("rolleFilter") || "aktiv";
 
 if (filter === "aktiv") {
   rollen = rollen.filter(r =>
@@ -1103,18 +1103,15 @@ if (filter === "nichtfrei") {
 if (filter === "archiv") {
   rollen = rollen.filter(r => r.status === "Verbraucht");
 }
-
-  rollen = rollen.filter(r => r.status !== "Verbraucht");
-
   let html = `
     <div class="box">
       <h2>Rolle bearbeiten</h2>
       <label>Ansicht</label>
-<select id="rolleFilter" onchange="showAuswahl()">
-  <option value="aktiv">Aktive Rollen</option>
-  <option value="nichtfrei">Nicht freigegeben</option>
-  <option value="archiv">Archivierte Rollen</option>
-  <option value="alle">Alle Rollen</option>
+<select id="rolleFilter" onchange="changeRolleFilter()">
+  <option value="aktiv" ${filter === "aktiv" ? "selected" : ""}>Aktive Rollen</option>
+  <option value="nichtfrei" ${filter === "nichtfrei" ? "selected" : ""}>Nicht freigegeben</option>
+  <option value="archiv" ${filter === "archiv" ? "selected" : ""}>Archivierte Rollen</option>
+  <option value="alle" ${filter === "alle" ? "selected" : ""}>Alle Rollen</option>
 </select>
 
       <select id="rolleSelect" onchange="loadRolleEditor()">
@@ -1143,6 +1140,12 @@ if (filter === "archiv") {
   document.getElementById("app").innerHTML = html;
 }
 
+function changeRolleFilter() {
+  const filter = document.getElementById("rolleFilter").value;
+  localStorage.setItem("rolleFilter", filter);
+  showAuswahl();
+}
+  
 function showScanner() {
   document.getElementById("app").innerHTML = `
     <div class="box">
