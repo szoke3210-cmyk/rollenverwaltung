@@ -3,6 +3,7 @@
 <html lang="de">
 <script src="https://unpkg.com/html5-qrcode"></script>
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f172a">
 <meta charset="UTF-8">
@@ -62,44 +63,6 @@ function getTypFarben(typ) {
   return typFarben[typ] || ["#dddddd", "#999999"];
 }
 
-let accessToken = localStorage.getItem("supabaseAccessToken");
-
-function getHeaders() {
-  return {
-    "apikey": SUPABASE_KEY,
-    "Authorization": "Bearer " + accessToken,
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-  };
-}
-
-async function loginSupabase() {
-  const email = prompt("Supabase Email:");
-  const password = prompt("Supabase Passwort:");
-
-  const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
-    method: "POST",
-    headers: {
-      "apikey": SUPABASE_KEY,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email, password })
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert("Login fehlgeschlagen: " + JSON.stringify(data));
-    return false;
-  }
-
-  accessToken = data.access_token;
-  localStorage.setItem("supabaseAccessToken", accessToken);
-
-  alert("Login erfolgreich");
-  location.reload();
-  return true;
-}
 
   async function showPublicRolle() {
   const app = document.getElementById("app");
@@ -152,12 +115,6 @@ async function loginSupabase() {
 }
 
  
-  
-async function api(path, options = {}) {
-  if (!accessToken) {
-    const ok = await loginSupabase();
-    if (!ok) return [];
-  }
 
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
     ...options,
@@ -308,7 +265,90 @@ function toggleAdmin() {
 
   location.reload();
 }
-  
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});
+
+let accessToken = null;
+
+async function initSupabaseSession() {
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (data.session) {
+    accessToken = data.session.access_token;
+    return true;
+  }
+
+  return await loginSupabase();
+}
+
+async function loginSupabase() {
+  const email = prompt("Supabase Email:");
+  const password = prompt("Supabase Passwort:");
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert("Login fehlgeschlagen: " + error.message);
+    return false;
+  }
+
+  accessToken = data.session.access_token;
+  alert("Login erfolgreich");
+  location.reload();
+  return true;
+}
+
+async function logoutSupabase() {
+  await supabaseClient.auth.signOut();
+  accessToken = null;
+  alert("Abgemeldet");
+  location.reload();
+}
+
+function getHeaders() {
+  return {
+    "apikey": SUPABASE_KEY,
+    "Authorization": "Bearer " + accessToken,
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+  };
+}
+
+async function api(path, options = {}) {
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (data.session) {
+    accessToken = data.session.access_token;
+  }
+
+  if (!accessToken) {
+    const ok = await loginSupabase();
+    if (!ok) return [];
+  }
+
+  const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+    ...options,
+    headers: {
+      ...getHeaders(),
+      ...(options.headers || {})
+    }
+  });
+
+  if (!res.ok) {
+    alert("Fehler: " + await res.text());
+    return [];
+  }
+
+  return await res.json();
+}
 async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
 
@@ -1590,15 +1630,18 @@ async function deleteKunde(id, name) {
   alert("Bemerkung gespeichert");
 }
   
-if (kennung && !accessToken) {
-  showPublicRolle();
-} else if (page === "statistik") showStatistik();
-else if (page === "typen") showTypen();
-else if (page === "auswahl") showAuswahl();
-else if (page === "kunden") showKunden();
-else if (page === "scanner") showScanner();
-else if (kennung) showDetail();
-else showList();
-</script>
-</body>
-</html>
+async function startApp() {
+  await initSupabaseSession();
+
+  if (kennung && !accessToken) {
+    showPublicRolle();
+  } else if (page === "statistik") showStatistik();
+  else if (page === "typen") showTypen();
+  else if (page === "auswahl") showAuswahl();
+  else if (page === "kunden") showKunden();
+  else if (page === "scanner") showScanner();
+  else if (kennung) showDetail();
+  else showList();
+}
+
+startApp();
