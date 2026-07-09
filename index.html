@@ -139,6 +139,12 @@ async function loginSupabase() {
 
         <h3>Bemerkung hinzufügen</h3>
         <textarea id="publicBemerkung" placeholder="Bemerkung eingeben...">${r.qr_bemerkung || ""}</textarea>
+        ${r.qr_bemerkung_datum ? `
+<p style="color:#666;font-size:13px;">
+  Letzte Änderung:
+  ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
+</p>
+` : ""}
         <button onclick="savePublicBemerkung(${r.id})">Bemerkung speichern</button>
       </div>
     </div>
@@ -899,11 +905,22 @@ let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option
 
 html += `
 <div class="box">
-  <label>Bemerkung</label>
+  <label>Interne Bemerkung</label>
   <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
 
+  <br><br>
+
+  <label>QR Bemerkung</label>
+  <textarea id="qr_bemerkung">${r.qr_bemerkung || ""}</textarea>
+  ${r.qr_bemerkung_datum ? `
+<p style="color:#666;font-size:13px;margin-top:5px;">
+  Letzte Änderung:
+  ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
+</p>
+` : ""}
+
   <button onclick="saveBemerkung(${r.id})">
-    Bemerkung speichern
+    Bemerkungen speichern
   </button>
 
   ${isAdmin ? `
@@ -1158,15 +1175,18 @@ async function zurueck(id) {
 }
 async function saveBemerkung(id) {
   const bemerkung = document.getElementById("bemerkungEdit").value;
+  const qr_bemerkung = document.getElementById("qr_bemerkung").value;
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-      bemerkung: bemerkung
-    })
+  bemerkung: bemerkung,
+  qr_bemerkung: qr_bemerkung,
+  qr_bemerkung_datum: new Date().toISOString()
+})
   });
 
-  alert("Bemerkung gespeichert");
+  alert("Bemerkungen gespeichert");
   location.reload();
 }
   
@@ -1557,8 +1577,9 @@ async function deleteKunde(id, name) {
     method: "PATCH",
     headers: publicHeaders,
     body: JSON.stringify({
-      qr_bemerkung: text
-    })
+  qr_bemerkung: text,
+  qr_bemerkung_datum: new Date().toISOString()
+})
   });
 
   if (!res.ok) {
