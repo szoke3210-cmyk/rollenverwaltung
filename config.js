@@ -39,3 +39,4 @@ function getTypFarben(typ) {
   console.log("TYP:", typ, "FARBEN:", typFarben[typ]);
   return typFarben[typ] || ["#dddddd", "#999999"];
 }
+
