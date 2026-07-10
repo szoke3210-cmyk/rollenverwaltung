@@ -5,6 +5,7 @@ const typFilter = params.get("typ");
 const page = params.get("page");
 
 let isAdmin = localStorage.getItem("adminMode") === "true";
+let currentUser = null;
   
 async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
