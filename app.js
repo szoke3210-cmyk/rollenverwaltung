@@ -32,3 +32,19 @@ async function api(path, options = {}) {
 
   return await res.json();
 }
+
+async function startApp() {
+  await initSupabaseSession();
+
+  if (kennung && !accessToken) {
+    showPublicRolle();
+  } else if (page === "statistik") showStatistik();
+  else if (page === "typen") showTypen();
+  else if (page === "auswahl") showAuswahl();
+  else if (page === "kunden") showKunden();
+  else if (page === "scanner") showScanner();
+  else if (kennung) showDetail();
+  else showList();
+}
+
+startApp();
