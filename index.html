@@ -1609,8 +1609,6 @@ async function startApp() {
 
   if (kennung && !accessToken) {
     showPublicRolle();
-  } else if (!accessToken) {
-    showLogin();
   } else if (page === "statistik") showStatistik();
   else if (page === "typen") showTypen();
   else if (page === "auswahl") showAuswahl();
@@ -1619,5 +1617,3 @@ async function startApp() {
   else if (kennung) showDetail();
   else showList();
 }
-
-startApp();
