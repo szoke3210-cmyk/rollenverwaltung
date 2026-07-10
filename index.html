@@ -191,50 +191,123 @@ function toggleAdmin() {
 let accessToken = null;
 
   async function loginSupabase() {
-  const emailInput = prompt("Supabase Email:");
+  const emailInput = document.getElementById("loginEmail");
+  const passwordInput = document.getElementById("loginPassword");
+  const loginButton = document.getElementById("loginButton");
+  const loginError = document.getElementById("loginError");
 
-  if (!emailInput) {
+  if (!emailInput || !passwordInput) {
+    console.error("Login Eingabefelder nicht gefunden");
     return false;
   }
 
-  const password = prompt("Supabase Passwort:");
+  const email = emailInput.value.trim().toLowerCase();
+  const password = passwordInput.value;
 
-  if (!password) {
+  loginError.textContent = "";
+
+  if (!email || !password) {
+    loginError.textContent = "Bitte E-Mail und Passwort eingeben.";
     return false;
   }
 
-  const email = emailInput.trim().toLowerCase();
+  loginButton.disabled = true;
+  loginButton.textContent = "Anmeldung läuft...";
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+  try {
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  if (error) {
-    console.error("Login Fehler:", {
-      message: error.message,
-      status: error.status,
-      code: error.code
-    });
+    if (error) {
+      console.error("Login Fehler:", error);
 
-    alert(
-      "Login fehlgeschlagen:\n" +
-      error.message +
-      "\n\nE-Mail: " +
-      email
-    );
+      loginError.textContent =
+        "Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.";
+
+      return false;
+    }
+
+    accessToken = data.session.access_token;
+    currentUser = data.session.user;
+
+    location.reload();
+    return true;
+
+  } catch (error) {
+    console.error("Login Fehler:", error);
+
+    loginError.textContent =
+      "Bei der Anmeldung ist ein Fehler aufgetreten.";
 
     return false;
+
+  } finally {
+    loginButton.disabled = false;
+    loginButton.textContent = "Anmelden";
   }
-
-  accessToken = data.session.access_token;
-  currentUser = data.session.user;
-
-  alert("Login erfolgreich");
-  location.reload();
-
-  return true;
 }
+
+  function showLogin() {
+  const app = document.getElementById("app");
+
+  if (!app) return;
+
+  app.innerHTML = `
+    <div class="login-page">
+      <div class="login-box">
+
+        <h1>Rollenverwaltung</h1>
+
+        <p class="login-description">
+          Bitte melden Sie sich an.
+        </p>
+
+        <label for="loginEmail">E-Mail-Adresse</label>
+
+        <input
+          id="loginEmail"
+          type="email"
+          autocomplete="username"
+          placeholder="name@firma.de"
+        >
+
+        <label for="loginPassword">Passwort</label>
+
+        <input
+          id="loginPassword"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Passwort"
+          onkeydown="loginEnter(event)"
+        >
+
+        <div id="loginError" class="login-error"></div>
+
+        <button
+          id="loginButton"
+          type="button"
+          onclick="loginSupabase()"
+        >
+          Anmelden
+        </button>
+
+      </div>
+    </div>
+  `;
+
+  document.getElementById("loginEmail")?.focus();
+}
+
+function loginEnter(event) {
+  if (event.key === "Enter") {
+    loginSupabase();
+  }
+}
+
+  
   
 async function initSupabaseSession() {
   try {
