@@ -4,7 +4,8 @@ const kennung = params.get("id");
 const typFilter = params.get("typ");
 const page = params.get("page");
 
-let isAdmin = localStorage.getItem("adminMode") === "true";
+let isAdmin = false;
+let currentUserRole = "user";
 let currentUser = null;
   
 async function api(path, options = {}) {
@@ -46,14 +47,15 @@ function showLoggedInUser() {
   }
 
   userInfo.innerHTML = `
-    <span class="user-email">
-      ${currentUser.email}
-    </span>
+  <span class="user-email">
+    ${currentUser.email}
+    ${isAdmin ? `<small class="user-role">Admin</small>` : ""}
+  </span>
 
-    <button class="logout-button" onclick="logoutUser()">
-      Logout
-    </button>
-  `;
+  <button class="logout-button" onclick="logoutUser()">
+    Logout
+  </button>
+`;
 }
 
 async function logoutUser() {
@@ -71,6 +73,49 @@ async function logoutUser() {
   location.href = window.location.pathname;
 }
 
+
+async function loadUserRole() {
+  if (!currentUser?.id || !accessToken) {
+    isAdmin = false;
+    currentUserRole = "user";
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/profiles?id=eq." +
+        encodeURIComponent(currentUser.id) +
+        "&select=role",
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: "Bearer " + accessToken
+        }
+      }
+    );
+
+    if (!res.ok) {
+      console.error("Rolle konnte nicht geladen werden:", await res.text());
+      isAdmin = false;
+      currentUserRole = "user";
+      return;
+    }
+
+    const profiles = await res.json();
+    const role = profiles[0]?.role || "user";
+
+    currentUserRole = role;
+    isAdmin = role === "admin";
+
+    console.log("Benutzerrolle:", currentUserRole);
+  } catch (error) {
+    console.error("Fehler beim Laden der Benutzerrolle:", error);
+
+    isAdmin = false;
+    currentUserRole = "user";
+  }
+}
 
 async function startApp() {
   const eingeloggt = await initSupabaseSession();
