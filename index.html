@@ -164,22 +164,6 @@ ctx.stroke();
   };
 }
   
-function toggleAdmin() {
-  if (isAdmin) {
-    localStorage.setItem("adminMode", "false");
-    alert("Admin Modus ausgeschaltet");
-  } else {
-    const pass = prompt("Admin Passwort:");
-    if (pass === "1525") {
-      localStorage.setItem("adminMode", "true");
-      alert("Admin Modus eingeschaltet");
-    } else {
-      alert("Falsches Passwort");
-    }
-  }
-
-  location.reload();
-}
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     persistSession: true,
@@ -436,12 +420,6 @@ if (!typFilter) {
     Kunde bearbeiten
   </button>
 ` : ""}
-      <button
-  onclick="toggleAdmin()"
-  style="width:auto;padding:5px 8px;font-size:12px;"
->
-  ${isAdmin ? "Admin aus" : "Admin"}
-</button>
     </div>
   `;
 }
