@@ -75,6 +75,72 @@ canvas{margin-top:10px;max-width:100%}
     white-space: nowrap;
   }
 }
+
+.login-page {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.15);
+}
+
+.login-box h1 {
+  margin: 0 0 10px;
+  text-align: center;
+  color: #0f172a;
+}
+
+.login-description {
+  margin-bottom: 24px;
+  text-align: center;
+  color: #64748b;
+}
+
+.login-box label {
+  display: block;
+  margin-top: 14px;
+  font-weight: bold;
+  color: #334155;
+}
+
+.login-box input {
+  margin-top: 6px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.login-box input:focus {
+  outline: 2px solid #2563eb;
+  border-color: #2563eb;
+}
+
+.login-box button {
+  margin-top: 20px;
+}
+
+.login-box button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.login-error {
+  min-height: 22px;
+  margin-top: 12px;
+  color: #dc2626;
+  font-weight: bold;
+  text-align: center;
+}
+
 </style>
 
 
