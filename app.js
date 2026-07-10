@@ -65,8 +65,6 @@ async function logoutUser() {
     alert("Logout fehlgeschlagen: " + error.message);
     return;
   }
-
-  localStorage.removeItem("adminMode");
   accessToken = null;
   currentUser = null;
 
