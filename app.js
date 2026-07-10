@@ -68,16 +68,26 @@ async function logoutUser() {
   accessToken = null;
   currentUser = null;
 
-  location.href = "index.html";
+  location.href = window.location.pathname;
 }
 
 
 async function startApp() {
-  await initSupabaseSession();
+  const eingeloggt = await initSupabaseSession();
 
-  if (kennung && !accessToken) {
+  // Nyilvános QR-link bejelentkezés nélkül is működhet
+  if (kennung && !eingeloggt) {
     showPublicRolle();
-  } else if (page === "statistik") showStatistik();
+    return;
+  }
+
+  // Ha nincs bejelentkezve, jelenjen meg a login oldal
+  if (!eingeloggt) {
+    showLogin();
+    return;
+  }
+
+  if (page === "statistik") showStatistik();
   else if (page === "typen") showTypen();
   else if (page === "auswahl") showAuswahl();
   else if (page === "kunden") showKunden();
