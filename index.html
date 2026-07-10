@@ -76,28 +76,6 @@ Rollenverwaltung
   `;
 }
 
- 
-
-function toggleMitarbeiter() {
-
-  if (mitarbeiterMode) {
-    localStorage.setItem("mitarbeiterMode", "false");
-    alert("Mitarbeiter Modus ausgeschaltet");
-    location.reload();
-    return;
-  }
-
-  const pin = prompt("Mitarbeiter PIN:");
-
-  if (pin === MITARBEITER_PIN) {
-    localStorage.setItem("mitarbeiterMode", "true");
-    alert("Mitarbeiter Modus eingeschaltet");
-    location.reload();
-  } else {
-    alert("Falscher PIN");
-  }
-}
-
 function statusBadge(status) {
   if (status === "Electrotherm") return `<span class="status reparatur">Electrotherm</span>`;
   return `<span class="status lager">Im Lager</span>`;
@@ -205,30 +183,7 @@ function toggleAdmin() {
 
 let accessToken = null;
 
-async function initSupabaseSession() {
-  try {
-    const { data, error } = await supabaseClient.auth.getSession();
-
-    if (error) {
-      console.error("Session Fehler:", error);
-      return false;
-    }
-
-    if (data?.session) {
-      accessToken = data.session.access_token;
-      return true;
-    }
-
-    accessToken = null;
-    return false;
-  } catch (error) {
-    console.error("Session Fehler:", error);
-    accessToken = null;
-    return false;
-  }
-}
-
-async function loginSupabase() {
+  async function loginSupabase() {
   const email = prompt("Supabase Email:");
   const password = prompt("Supabase Passwort:");
 
@@ -247,6 +202,45 @@ async function loginSupabase() {
   location.reload();
   return true;
 }
+  
+async function initSupabaseSession() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("Session Fehler:", error);
+      accessToken = null;
+      currentUser = null;
+      showLoggedInUser();
+      return false;
+    }
+
+    if (data?.session) {
+      accessToken = data.session.access_token;
+      currentUser = data.session.user;
+
+      showLoggedInUser();
+      return true;
+    }
+
+    accessToken = null;
+    currentUser = null;
+
+    showLoggedInUser();
+    return false;
+
+  } catch (error) {
+    console.error("Session Fehler:", error);
+
+    accessToken = null;
+    currentUser = null;
+
+    showLoggedInUser();
+    return false;
+  }
+}
+
+
 
 async function logoutSupabase() {
   await supabaseClient.auth.signOut();
@@ -434,12 +428,6 @@ html += `
 
   <br><br>
 ` : ""}
-
-<button onclick="toggleMitarbeiter()">
-  ${mitarbeiterMode ? "Mitarbeiter Logout" : "Mitarbeiter Login"}
-</button>
-
-<br><br>
 `;
 
 html += `
@@ -962,17 +950,7 @@ ${r.status === "Electrotherm" ? `
 
   <input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
 `}
-${(isAdmin || mitarbeiterMode) && r.status === "Im Lager" ? `
-  <button class="orange" onclick="zuElectrotherm(${r.id})">
-    Zu Electrotherm senden
-  </button>
-` : ""}
 
-${(isAdmin || mitarbeiterMode) && r.status === "Electrotherm" ? `
-  <button class="green" onclick="zurueck(${r.id})">
-    Als zurückgekommen markieren
-  </button>
-` : ""}
 
 <div class="box"><h3>Historie</h3>
 `;
@@ -1139,19 +1117,11 @@ if (verbrauch !== null && verbrauch < 0) {
 }
 
 async function zuElectrotherm(id) {
-  if (!isAdmin && !mitarbeiterMode) {
-  alert("Keine Berechtigung.");
-  return;
-}
   window.forceStatus = "Electrotherm";
   await speichern(id);
 }
 
 async function zurueck(id) {
-  if (!isAdmin && !mitarbeiterMode) {
-  alert("Keine Berechtigung.");
-  return;
-}
   window.forceStatus = "Im Lager";
   await speichern(id);
 }
