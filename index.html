@@ -8,7 +8,6 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-<script src="app.js"></script>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
@@ -1573,23 +1572,8 @@ async function deleteKunde(id, name) {
   alert("Bemerkung gespeichert");
 }
   
-async function startApp() {
-  await initSupabaseSession();
-
-  if (kennung && !accessToken) {
-    showPublicRolle();
-  } else if (page === "statistik") showStatistik();
-  else if (page === "typen") showTypen();
-  else if (page === "auswahl") showAuswahl();
-  else if (page === "kunden") showKunden();
-  else if (page === "scanner") showScanner();
-  else if (kennung) showDetail();
-  else showList();
-}
-
-startApp();
-
 </script>
 
+<script src="app.js"></script>
 </body>
 </html>
