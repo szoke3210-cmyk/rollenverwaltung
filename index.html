@@ -322,12 +322,14 @@ async function initSupabaseSession() {
     }
 
     if (data?.session) {
-      accessToken = data.session.access_token;
-      currentUser = data.session.user;
+  accessToken = data.session.access_token;
+  currentUser = data.session.user;
 
-      showLoggedInUser();
-      return true;
-    }
+  await loadUserRole();
+  showLoggedInUser();
+
+  return true;
+}
 
     accessToken = null;
     currentUser = null;
