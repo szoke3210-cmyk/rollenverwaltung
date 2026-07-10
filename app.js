@@ -75,15 +75,26 @@ async function logoutUser() {
 async function startApp() {
   const eingeloggt = await initSupabaseSession();
 
-  // Nyilvános QR-link bejelentkezés nélkül is működhet
+  // Nyilvános QR-link belépés nélkül
   if (kennung && !eingeloggt) {
     showPublicRolle();
     return;
   }
 
-  // Ha nincs bejelentkezve, jelenjen meg a login oldal
+  // Ha nincs belépve, induljon el az e-mailes login
   if (!eingeloggt) {
-    showLogin();
+    const loginErfolgreich = await loginSupabase();
+
+    if (!loginErfolgreich) {
+      document.getElementById("app").innerHTML = `
+        <div class="box">
+          <h2>Anmeldung erforderlich</h2>
+          <p>Bitte melden Sie sich an, um die Rollenverwaltung zu öffnen.</p>
+          <button onclick="loginSupabase()">Anmelden</button>
+        </div>
+      `;
+    }
+
     return;
   }
 
