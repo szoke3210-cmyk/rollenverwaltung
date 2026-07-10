@@ -192,7 +192,16 @@ let accessToken = null;
 
   async function loginSupabase() {
   const email = prompt("Supabase Email:");
+
+  if (!email) {
+    return false;
+  }
+
   const password = prompt("Supabase Passwort:");
+
+  if (!password) {
+    return false;
+  }
 
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
@@ -205,8 +214,11 @@ let accessToken = null;
   }
 
   accessToken = data.session.access_token;
+  currentUser = data.session.user;
+
   alert("Login erfolgreich");
   location.reload();
+
   return true;
 }
   
