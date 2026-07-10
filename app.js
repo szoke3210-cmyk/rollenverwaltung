@@ -5,8 +5,6 @@ const typFilter = params.get("typ");
 const page = params.get("page");
 
 let isAdmin = localStorage.getItem("adminMode") === "true";
-let mitarbeiterMode = localStorage.getItem("mitarbeiterMode") === "true";
-const MITARBEITER_PIN = "2580";
   
 async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
@@ -32,6 +30,62 @@ async function api(path, options = {}) {
 
   return await res.json();
 }
+
+function showLoggedInUser() {
+  const userInfo = document.getElementById("userInfo");
+
+  if (!userInfo) return;
+
+  const email = currentUser?.email;
+
+  if (!email) {
+    userInfo.innerHTML = "";
+    return;
+  }
+
+  userInfo.innerHTML = `
+    <span class="user-email">${escapeHtml(email)}</span>
+
+    <button class="logout-button" onclick="logoutUser()">
+      Logout
+    </button>
+  `;
+}
+
+async function logoutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    alert("Logout fehlgeschlagen: " + error.message);
+    return;
+  }
+
+  localStorage.removeItem("adminMode");
+  location.href = "index.html";
+}
+
+function showLoggedInUser() {
+  const userInfo = document.getElementById("userInfo");
+
+  if (!userInfo) return;
+
+  const email = currentUser?.email;
+
+  if (!email) {
+    userInfo.innerHTML = "";
+    return;
+  }
+
+  userInfo.innerHTML = `
+    <span class="user-email">${email}</span>
+
+    <button class="logout-button" onclick="logoutUser()">
+      Logout
+    </button>
+  `;
+}
+
+
 
 async function startApp() {
   await initSupabaseSession();
