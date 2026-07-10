@@ -75,36 +75,33 @@ async function logoutUser() {
 async function startApp() {
   const eingeloggt = await initSupabaseSession();
 
-  // Nyilvános QR-link belépés nélkül
+  // A QR-kódról megnyitott nyilvános Rolle
   if (kennung && !eingeloggt) {
     showPublicRolle();
     return;
   }
 
-  // Ha nincs belépve, induljon el az e-mailes login
+  // Normál oldal bejelentkezés nélkül
   if (!eingeloggt) {
-    const loginErfolgreich = await loginSupabase();
-
-    if (!loginErfolgreich) {
-      document.getElementById("app").innerHTML = `
-        <div class="box">
-          <h2>Anmeldung erforderlich</h2>
-          <p>Bitte melden Sie sich an, um die Rollenverwaltung zu öffnen.</p>
-          <button onclick="loginSupabase()">Anmelden</button>
-        </div>
-      `;
-    }
-
+    showLogin();
     return;
   }
 
-  if (page === "statistik") showStatistik();
-  else if (page === "typen") showTypen();
-  else if (page === "auswahl") showAuswahl();
-  else if (page === "kunden") showKunden();
-  else if (page === "scanner") showScanner();
-  else if (kennung) showDetail();
-  else showList();
+  if (page === "statistik") {
+    showStatistik();
+  } else if (page === "typen") {
+    showTypen();
+  } else if (page === "auswahl") {
+    showAuswahl();
+  } else if (page === "kunden") {
+    showKunden();
+  } else if (page === "scanner") {
+    showScanner();
+  } else if (kennung) {
+    showDetail();
+  } else {
+    showList();
+  }
 }
 
 startApp();
