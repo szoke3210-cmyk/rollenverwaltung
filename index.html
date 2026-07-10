@@ -996,12 +996,17 @@ ${r.status === "Im Lager" ? `
 </div>
 `;
 
-<div class="box"><h3>Historie</h3>
+html += `
+<div class="box">
+  <h3>Historie</h3>
 `;
 
-if (!historie.length) html += `<p>Noch keine Historie.</p>`;
-  historie.forEach(h => {
-    html += `
+if (!historie.length) {
+  html += `<p>Noch keine Historie.</p>`;
+}
+
+historie.forEach(h => {
+  html += `
 <div style="
   border:1px solid #ddd;
   border-radius:8px;
