@@ -238,14 +238,26 @@ function toggleAdmin() {
 let accessToken = null;
 
 async function initSupabaseSession() {
-  const { data } = await supabaseClient.auth.getSession();
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
 
-  if (data.session) {
-    accessToken = data.session.access_token;
-    return true;
+    if (error) {
+      console.error("Session Fehler:", error);
+      return false;
+    }
+
+    if (data?.session) {
+      accessToken = data.session.access_token;
+      return true;
+    }
+
+    accessToken = null;
+    return false;
+  } catch (error) {
+    console.error("Session Fehler:", error);
+    accessToken = null;
+    return false;
   }
-
-  return await loginSupabase();
 }
 
 async function loginSupabase() {
@@ -1597,6 +1609,8 @@ async function startApp() {
 
   if (kennung && !accessToken) {
     showPublicRolle();
+  } else if (!accessToken) {
+    showLogin();
   } else if (page === "statistik") showStatistik();
   else if (page === "typen") showTypen();
   else if (page === "auswahl") showAuswahl();
