@@ -29,7 +29,7 @@ canvas{margin-top:10px;max-width:100%}
   cursor: pointer;
 }
 
-.user-info {
+#userInfo {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -42,6 +42,8 @@ canvas{margin-top:10px;max-width:100%}
 }
 
 .logout-button {
+  width: auto;
+  margin: 0;
   background: #dc2626;
   color: white;
   border: none;
@@ -61,7 +63,7 @@ canvas{margin-top:10px;max-width:100%}
     flex-direction: column;
   }
 
-  .user-info {
+  #userInfo {
     width: 100%;
     justify-content: space-between;
   }
