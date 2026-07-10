@@ -191,9 +191,9 @@ function toggleAdmin() {
 let accessToken = null;
 
   async function loginSupabase() {
-  const email = prompt("Supabase Email:");
+  const emailInput = prompt("Supabase Email:");
 
-  if (!email) {
+  if (!emailInput) {
     return false;
   }
 
@@ -203,13 +203,27 @@ let accessToken = null;
     return false;
   }
 
+  const email = emailInput.trim().toLowerCase();
+
   const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
+    email: email,
+    password: password
   });
 
   if (error) {
-    alert("Login fehlgeschlagen: " + error.message);
+    console.error("Login Fehler:", {
+      message: error.message,
+      status: error.status,
+      code: error.code
+    });
+
+    alert(
+      "Login fehlgeschlagen:\n" +
+      error.message +
+      "\n\nE-Mail: " +
+      email
+    );
+
     return false;
   }
 
