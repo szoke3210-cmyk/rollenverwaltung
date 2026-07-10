@@ -35,17 +35,20 @@ async function api(path, options = {}) {
 function showLoggedInUser() {
   const userInfo = document.getElementById("userInfo");
 
-  if (!userInfo) return;
+  if (!userInfo) {
+    console.error("A userInfo elem nem található.");
+    return;
+  }
 
-  const email = currentUser?.email;
-
-  if (!email) {
+  if (!currentUser?.email) {
     userInfo.innerHTML = "";
     return;
   }
 
   userInfo.innerHTML = `
-    <span class="user-email">${escapeHtml(email)}</span>
+    <span class="user-email">
+      ${currentUser.email}
+    </span>
 
     <button class="logout-button" onclick="logoutUser()">
       Logout
@@ -62,30 +65,11 @@ async function logoutUser() {
   }
 
   localStorage.removeItem("adminMode");
+  accessToken = null;
+  currentUser = null;
+
   location.href = "index.html";
 }
-
-function showLoggedInUser() {
-  const userInfo = document.getElementById("userInfo");
-
-  if (!userInfo) return;
-
-  const email = currentUser?.email;
-
-  if (!email) {
-    userInfo.innerHTML = "";
-    return;
-  }
-
-  userInfo.innerHTML = `
-    <span class="user-email">${email}</span>
-
-    <button class="logout-button" onclick="logoutUser()">
-      Logout
-    </button>
-  `;
-}
-
 
 
 async function startApp() {
