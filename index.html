@@ -1065,112 +1065,99 @@ ${isAdmin ? `
 </div>
 `;
 
-html += `
-<div class="box">
-  <h3>
-${r.status === "Im Lager"
-  ? "Zu Electrotherm senden"
-  : "Von Electrotherm zurück"}
-</h3>
-  <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
+if (r.status === "Im Lager") {
+  html += `
+    <div class="box">
+      <h3>Zu Electrotherm senden</h3>
 
-${r.status === "Electrotherm" ? `
-<p>
-  <b>Aktueller Kunde:</b>
-  ${r.auftrag || "-"}
-</p>
-` : ""}
+      <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
 
-  ${r.status === "Electrotherm" ? `
-  <label>Verbrauch / Verlust in Meter</label>
-  <input
-    id="verbrauch"
-    type="number"
-    step="0.01"
-    min="0"
-    placeholder="Verbrauch eingeben"
-  >
-` : ""}
+      <label>Auftrag / Kunde</label>
 
-  ${r.status === "Im Lager" ? `
-<label>Auftrag / Kunde</label>
-` : ""}
+      <select id="auftragSelect" onchange="kundeWechsel()">
+        <option value="">Kunde auswählen...</option>
+        ${kundenOptions}
+        <option value="__neu">+ Neuer Kunde</option>
+      </select>
 
-${r.status === "Electrotherm" ? `
-  <p><b>${r.auftrag || "-"}</b></p>
-  <input type="hidden" id="auftragSelect" value="${r.auftrag || ""}">
-  <input type="hidden" id="auftragNeu" value="">
-` : `
-  <select id="auftragSelect" onchange="kundeWechsel()">
-    <option value="">Kunde auswählen...</option>
-    ${kundenOptions}
-    <option value="__neu">+ Neuer Kunde</option>
-  </select>
+      <input
+        id="auftragNeu"
+        placeholder="Neuer Kunde"
+        style="display:none"
+      >
 
-  <input id="auftragNeu" placeholder="Neuer Kunde" style="display:none">
-`}
-
-${r.status === "Im Lager" ? `
-  <button class="orange" onclick="zuElectrotherm(${r.id})">
-    Zu Electrotherm senden
-  </button>
-` : `
-  <button class="green" onclick="zurueck(${r.id})">
-    Als zurückgekommen markieren
-  </button>
-`}
-
-</div>
-`;
-
-html += `
-<div class="box">
-  <h3>Historie</h3>
-`;
-
-if (!historie.length) {
-  html += `<p>Noch keine Historie.</p>`;
+      <button class="orange" onclick="zuElectrotherm(${r.id})">
+        Zu Electrotherm senden
+      </button>
+    </div>
+  `;
 }
 
-historie.forEach(h => {
+if (r.status === "Electrotherm") {
   html += `
-<div style="
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:10px;
-  margin-bottom:10px;
-">
+    <div class="box">
+      <h3>Von Electrotherm zurück</h3>
 
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-  <b>${new Date(h.datum).toLocaleString("de-DE")}</b>
+      <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
 
-  ${h.aktion.includes("zurück") ? `
-    <div style="text-align:right;">
-      <div><b>Rest:</b> ${h.laenge || "-"} m</div>
+      <p>
+        <b>Aktueller Kunde:</b>
+        ${r.auftrag || "-"}
+      </p>
 
-      <div style="
-        color:#dc3545;
-        font-weight:bold;
-        margin-top:4px;
-      ">
-        Verbrauch: ${h.verbrauch || 0} m
-      </div>
+      <label>Verbrauch / Verlust in Meter</label>
+
+      <input
+        id="verbrauch"
+        type="number"
+        step="0.01"
+        min="0"
+        placeholder="Verbrauch eingeben"
+      >
+
+      <input
+        type="hidden"
+        id="auftragSelect"
+        value="${r.auftrag || ""}"
+      >
+
+      <input
+        type="hidden"
+        id="auftragNeu"
+        value=""
+      >
+
+      <button class="green" onclick="zurueck(${r.id})">
+        Als zurückgekommen markieren
+      </button>
     </div>
-  ` : ""}
-</div>
+  `;
+}
 
-<div style="margin-top:6px;">
-  ${(h.aktion || "").replace(/\s*\|\s*Auftrag:.*?(?=\s*\||$)/, "")}
-</div>
+if (r.status === "Nicht freigegeben") {
+  html += `
+    <div class="box">
+      <h3>Status: ${statusBadge(r.status)}</h3>
 
-  ${h.auftrag ? `
-    <div>
-      <b>Kunde:</b> ${h.auftrag}
+      <p>
+        Diese Rolle ist noch nicht freigegeben und kann nicht zu
+        Electrotherm gesendet werden.
+      </p>
     </div>
-  ` : ""}
+  `;
+}
 
-</div>
-`;
+if (r.status === "Verbraucht") {
+  html += `
+    <div class="box">
+      <h3>Status: ${statusBadge(r.status)}</h3>
+
+      <p>
+        Diese Rolle ist verbraucht und archiviert.
+      </p>
+    </div>
+  `;
+}
   });
 
   html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
@@ -1542,9 +1529,11 @@ function showScanner() {
     Freigeben
   </button>
 ` : ""}
-        <button onclick="markRolleVerbraucht(${r.id})" style="background:#f0ad4e;color:white;margin-left:10px;">
-          Als verbraucht markieren
-        </button>
+        ${r.status !== "Verbraucht" ? `
+  <button class="red" onclick="markRolleVerbraucht(${r.id})">
+    Als verbraucht markieren
+  </button>
+` : ""}
 
         <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
           Rolle löschen
