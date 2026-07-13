@@ -1158,9 +1158,14 @@ if (r.status === "Verbraucht") {
     </div>
   `;
 }
-  });
 
-  html += `</div><button onclick="location.href='index.html'">Zur Übersicht</button>`;
+html += `
+  </div>
+  <button onclick="location.href='index.html'">
+    Zur Übersicht
+  </button>
+`;
+
 document.getElementById("app").innerHTML = html;
 }
 
