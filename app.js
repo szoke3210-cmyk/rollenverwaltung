@@ -401,6 +401,34 @@ data.forEach(eintrag => {
   document.getElementById("app").innerHTML = html;
 }
 
+function statusBadge(status) {
+  let background = "#6c757d";
+
+  if (status === "Im Lager") {
+    background = "#198754";
+  } else if (status === "Electrotherm") {
+    background = "#fd7e14";
+  } else if (status === "Nicht freigegeben") {
+    background = "#6c757d";
+  } else if (status === "Verbraucht") {
+    background = "#dc3545";
+  }
+
+  return `
+    <span style="
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      background:${background};
+      color:white;
+      font-weight:bold;
+      font-size:13px;
+    ">
+      ${escapeHtml(status || "-")}
+    </span>
+  `;
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
