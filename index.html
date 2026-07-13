@@ -461,9 +461,13 @@ if (!typFilter) {
     <div class="box">
       <button onclick="location.href='?page=statistik'">📊 Statistik</button>
       <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
-      ${isAdmin ? `
+     ${isAdmin ? `
   <button onclick="location.href='?page=kunden'">
     Kunde bearbeiten
+  </button>
+
+  <button onclick="downloadBackup(this)">
+    💾 Backup herunterladen
   </button>
 ` : ""}
     </div>
