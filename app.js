@@ -302,6 +302,61 @@ async function showAktivitaet() {
       </div>
     `;
   } else {
+    let icon = "📄";
+
+switch (true) {
+  case eintrag.aktion === "Anmeldung":
+    icon = "🟢";
+    break;
+
+  case eintrag.aktion === "Abmeldung":
+    icon = "🔴";
+    break;
+
+  case eintrag.aktion === "Neue Rolle erstellt":
+    icon = "➕";
+    break;
+
+  case eintrag.aktion === "Rolle geändert":
+    icon = "✏️";
+    break;
+
+  case eintrag.aktion.startsWith("Zu Electrotherm"):
+    icon = "🚚";
+    break;
+
+  case eintrag.aktion.startsWith("Von Electrotherm zurück"):
+    icon = "📦";
+    break;
+
+  case eintrag.aktion === "Verbraucht":
+    icon = "🗄️";
+    break;
+
+  case eintrag.aktion === "Rolle freigegeben":
+    icon = "✅";
+    break;
+
+  case eintrag.aktion === "Rolle gelöscht":
+    icon = "🗑️";
+    break;
+
+  case eintrag.aktion === "Backup erstellt":
+    icon = "💾";
+    break;
+
+  case eintrag.aktion === "Kunde hinzugefügt":
+    icon = "👤";
+    break;
+
+  case eintrag.aktion === "Kunde umbenannt":
+    icon = "✏️👤";
+    break;
+
+  case eintrag.aktion === "Kunde gelöscht":
+    icon = "❌👤";
+    break;
+}
     data.forEach(eintrag => {
       const datum = eintrag.datum
         ? new Date(eintrag.datum).toLocaleString("de-DE")
