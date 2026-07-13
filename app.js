@@ -157,17 +157,19 @@ async function downloadBackup(button) {
       button.textContent = "Backup wird erstellt...";
     }
 
-   const [rollen, historie, kunden] = await Promise.all([
+   const [rollen, historie, kunden, typen] = await Promise.all([
   ladeAlleDatensaetze("rollen"),
   ladeAlleDatensaetze("historie"),
-  ladeAlleDatensaetze("kunden")
+  ladeAlleDatensaetze("kunden"),
+  ladeAlleDatensaetze("typen")
 ]);
-
-    const backup = {
+    
+   const backup = {
   erstellt_am: new Date().toISOString(),
   rollen,
   historie,
-  kunden
+  kunden,
+  typen
 };
 
     const json = JSON.stringify(backup, null, 2);
@@ -302,65 +304,67 @@ async function showAktivitaet() {
       </div>
     `;
   } else {
-    let icon = "📄";
+data.forEach(eintrag => {
+  let icon = "📄";
 
-switch (true) {
-  case eintrag.aktion === "Anmeldung":
-    icon = "🟢";
-    break;
+  switch (true) {
+    case eintrag.aktion === "Anmeldung":
+      icon = "🟢";
+      break;
 
-  case eintrag.aktion === "Abmeldung":
-    icon = "🔴";
-    break;
+    case eintrag.aktion === "Abmeldung":
+      icon = "🔴";
+      break;
 
-  case eintrag.aktion === "Neue Rolle erstellt":
-    icon = "➕";
-    break;
+    case eintrag.aktion === "Neue Rolle erstellt":
+      icon = "➕";
+      break;
 
-  case eintrag.aktion === "Rolle geändert":
-    icon = "✏️";
-    break;
+    case eintrag.aktion === "Rolle geändert":
+      icon = "✏️";
+      break;
 
-  case eintrag.aktion.startsWith("Zu Electrotherm"):
-    icon = "🚚";
-    break;
+    case eintrag.aktion.startsWith("Zu Electrotherm"):
+      icon = "🚚";
+      break;
 
-  case eintrag.aktion.startsWith("Von Electrotherm zurück"):
-    icon = "📦";
-    break;
+    case eintrag.aktion.startsWith("Von Electrotherm zurück"):
+      icon = "📦";
+      break;
 
-  case eintrag.aktion === "Verbraucht":
-    icon = "🗄️";
-    break;
+    case eintrag.aktion === "Verbraucht":
+      icon = "🗄️";
+      break;
 
-  case eintrag.aktion === "Rolle freigegeben":
-    icon = "✅";
-    break;
+    case eintrag.aktion === "Rolle freigegeben":
+      icon = "✅";
+      break;
 
-  case eintrag.aktion === "Rolle gelöscht":
-    icon = "🗑️";
-    break;
+    case eintrag.aktion === "Rolle gelöscht":
+      icon = "🗑️";
+      break;
 
-  case eintrag.aktion === "Backup erstellt":
-    icon = "💾";
-    break;
+    case eintrag.aktion === "Backup erstellt":
+      icon = "💾";
+      break;
 
-  case eintrag.aktion === "Kunde hinzugefügt":
-    icon = "👤";
-    break;
+    case eintrag.aktion === "Kunde hinzugefügt":
+      icon = "👤";
+      break;
 
-  case eintrag.aktion === "Kunde umbenannt":
-    icon = "✏️👤";
-    break;
+    case eintrag.aktion === "Kunde umbenannt":
+      icon = "✏️👤";
+      break;
 
-  case eintrag.aktion === "Kunde gelöscht":
-    icon = "❌👤";
-    break;
-}
-    data.forEach(eintrag => {
-      const datum = eintrag.datum
-        ? new Date(eintrag.datum).toLocaleString("de-DE")
-        : "-";
+    case eintrag.aktion === "Kunde gelöscht":
+      icon = "❌👤";
+      break;
+  }
+
+  const datum = eintrag.datum
+    ? new Date(eintrag.datum).toLocaleString("de-DE")
+    : "-";
+});
 
       html += `
         <div class="box">
@@ -409,33 +413,47 @@ function escapeHtml(value) {
 
 
 async function startApp() {
-  const eingeloggt = await initSupabaseSession();
+  try {
+    const eingeloggt = await initSupabaseSession();
 
-  // A QR-kódról megnyitott nyilvános Rolle
-  if (kennung && !eingeloggt) {
-    showPublicRolle();
-    return;
+    if (kennung && !eingeloggt) {
+      await showPublicRolle();
+      return;
+    }
+
+    if (!eingeloggt) {
+      showLogin();
+      return;
+    }
+
+    if (page === "statistik") {
+      await showStatistik();
+    } else if (page === "typen") {
+      await showTypen();
+    } else if (page === "auswahl") {
+      await showAuswahl();
+    } else if (page === "kunden") {
+      await showKunden();
+    } else if (page === "aktivitaet") {
+      await showAktivitaet();
+    } else if (page === "scanner") {
+      showScanner();
+    } else if (kennung) {
+      await showDetail();
+    } else {
+      await showList();
+    }
+
+  } catch (error) {
+    console.error("Fehler in startApp:", error);
+
+    document.getElementById("app").innerHTML = `
+      <div class="box">
+        <h2>Fehler beim Laden</h2>
+        <p>${escapeHtml(error.message)}</p>
+      </div>
+    `;
   }
-
-  // Normál oldal bejelentkezés nélkül
-  if (!eingeloggt) {
-    showLogin();
-    return;
-  }
-
-  if (page === "statistik") {
-  showStatistik();
-} else if (page === "typen") {
-  showTypen();
-} else if (page === "auswahl") {
-  showAuswahl();
-} else if (page === "kunden") {
-  showKunden();
-} else if (page === "aktivitaet") {
-  showAktivitaet();
-} else if (page === "scanner") {
-  showScanner();
-}
 }
 
 startApp();
