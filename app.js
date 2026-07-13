@@ -191,6 +191,12 @@ async function downloadBackup(button) {
 
     URL.revokeObjectURL(url);
 
+    await logAktion(
+  "Backup erstellt",
+  "",
+  `Rollen: ${rollen.length}, Historie: ${historie.length}, Kunden: ${kunden.length}, Typen: ${typen.length}`
+);
+    
     alert(
       `Backup erfolgreich erstellt.\n\n` +
       `Rollen: ${rollen.length}\n` +
@@ -209,6 +215,145 @@ async function downloadBackup(button) {
   }
 }
 
+async function logAktion(aktion, rolle = "", details = "") {
+  try {
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    const { error } = await supabaseClient
+      .from("aktivitaet")
+      .insert([{
+        benutzer: user?.email || "Unbekannt",
+        aktion,
+        rolle,
+        details
+      }]);
+
+    if (error) console.error(error);
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function showAktivitaet() {
+  if (!isAdmin) {
+    document.getElementById("app").innerHTML = `
+      <div class="box">
+        <h2>Kein Zugriff</h2>
+        <p>Diese Seite ist nur für Administratoren verfügbar.</p>
+        <button onclick="location.href='index.html'">
+          Zurück
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("app").innerHTML = `
+    <div class="box">
+      <h2>Aktivitätsprotokoll</h2>
+      <p>Wird geladen...</p>
+    </div>
+  `;
+
+  const { data, error } = await supabaseClient
+    .from("aktivitaet")
+    .select("*")
+    .order("datum", { ascending: false })
+    .limit(500);
+
+  if (error) {
+    console.error("Fehler beim Laden der Aktivitäten:", error);
+
+    document.getElementById("app").innerHTML = `
+      <div class="box">
+        <h2>Aktivitätsprotokoll</h2>
+        <p>Fehler beim Laden:</p>
+        <p>${escapeHtml(error.message)}</p>
+
+        <button onclick="location.href='index.html'">
+          Zurück
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="box">
+      <h2>Aktivitätsprotokoll</h2>
+
+      <button onclick="location.href='index.html'">
+        Zurück
+      </button>
+
+      <button onclick="showAktivitaet()">
+        Aktualisieren
+      </button>
+    </div>
+  `;
+
+  if (!data || data.length === 0) {
+    html += `
+      <div class="box">
+        <p>Noch keine Aktivitäten vorhanden.</p>
+      </div>
+    `;
+  } else {
+    data.forEach(eintrag => {
+      const datum = eintrag.datum
+        ? new Date(eintrag.datum).toLocaleString("de-DE")
+        : "-";
+
+      html += `
+        <div class="box">
+          <div style="font-size: 13px; color: #666;">
+            ${escapeHtml(datum)}
+          </div>
+
+          <div style="margin-top: 8px;">
+            <strong>Benutzer:</strong>
+            ${escapeHtml(eintrag.benutzer || "Unbekannt")}
+          </div>
+
+          <div>
+            <strong>Aktion:</strong>
+            ${escapeHtml(eintrag.aktion || "-")}
+          </div>
+
+          ${eintrag.rolle ? `
+            <div>
+              <strong>Rolle:</strong>
+              ${escapeHtml(eintrag.rolle)}
+            </div>
+          ` : ""}
+
+          ${eintrag.details ? `
+            <div>
+              <strong>Details:</strong>
+              ${escapeHtml(eintrag.details)}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("app").innerHTML = html;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
 async function startApp() {
   const eingeloggt = await initSupabaseSession();
 
@@ -225,20 +370,18 @@ async function startApp() {
   }
 
   if (page === "statistik") {
-    showStatistik();
-  } else if (page === "typen") {
-    showTypen();
-  } else if (page === "auswahl") {
-    showAuswahl();
-  } else if (page === "kunden") {
-    showKunden();
-  } else if (page === "scanner") {
-    showScanner();
-  } else if (kennung) {
-    showDetail();
-  } else {
-    showList();
-  }
+  showStatistik();
+} else if (page === "typen") {
+  showTypen();
+} else if (page === "auswahl") {
+  showAuswahl();
+} else if (page === "kunden") {
+  showKunden();
+} else if (page === "aktivitaet") {
+  showAktivitaet();
+} else if (page === "scanner") {
+  showScanner();
+}
 }
 
 startApp();
