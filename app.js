@@ -364,7 +364,6 @@ data.forEach(eintrag => {
   const datum = eintrag.datum
     ? new Date(eintrag.datum).toLocaleString("de-DE")
     : "-";
-});
 
       html += `
         <div class="box">
