@@ -374,8 +374,7 @@ switch (true) {
           </div>
 
           <div>
-            <strong>Aktion:</strong>
-            ${escapeHtml(eintrag.aktion || "-")}
+            <strong>${icon} ${escapeHtml(eintrag.aktion || "-")}</strong>
           </div>
 
           ${eintrag.rolle ? `
