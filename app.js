@@ -157,23 +157,18 @@ async function downloadBackup(button) {
       button.textContent = "Backup wird erstellt...";
     }
 
-    const [rollen, historie, kunden, typen] = await Promise.all([
-      ladeAlleDatensaetze("rollen"),
-      ladeAlleDatensaetze("historie"),
-      ladeAlleDatensaetze("kunden"),
-      ladeAlleDatensaetze("typen")
-    ]);
+   const [rollen, historie, kunden] = await Promise.all([
+  ladeAlleDatensaetze("rollen"),
+  ladeAlleDatensaetze("historie"),
+  ladeAlleDatensaetze("kunden")
+]);
 
     const backup = {
-      backupVersion: 1,
-      erstelltAm: new Date().toISOString(),
-      tabellen: {
-        rollen,
-        historie,
-        kunden,
-        typen
-      }
-    };
+  erstellt_am: new Date().toISOString(),
+  rollen,
+  historie,
+  kunden
+};
 
     const json = JSON.stringify(backup, null, 2);
     const blob = new Blob([json], {
