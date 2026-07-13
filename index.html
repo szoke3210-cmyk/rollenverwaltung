@@ -206,20 +206,22 @@ let accessToken = null;
       });
 
     if (error) {
-      console.error("Login Fehler:", error);
+  console.error("Login Fehler:", error);
 
-      loginError.textContent =
-        "Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.";
+  loginError.textContent =
+    "Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.";
 
-      return false;
-    }
+  return false;
+}
 
-    accessToken = data.session.access_token;
-    currentUser = data.session.user;
+accessToken = data.session.access_token;
+currentUser = data.session.user;
 
-    location.reload();
-    return true;
+await logAktion("Anmeldung");
 
+location.reload();
+return true;
+    
   } catch (error) {
     console.error("Login Fehler:", error);
 
@@ -381,9 +383,15 @@ currentUserRole = "user";
 
 
 async function logoutSupabase() {
+
+  await logAktion("Abmeldung");
+
   await supabaseClient.auth.signOut();
+
   accessToken = null;
+
   alert("Abgemeldet");
+
   location.reload();
 }
 
@@ -464,6 +472,10 @@ if (!typFilter) {
      ${isAdmin ? `
   <button onclick="location.href='?page=kunden'">
     Kunde bearbeiten
+  </button>
+
+  <button onclick="location.href='?page=aktivitaet'">
+    📋 Aktivitätsprotokoll
   </button>
 
   <button onclick="downloadBackup(this)">
@@ -645,16 +657,22 @@ async function neueRolle() {
 });
 
   if (data.length) {
-    await api("historie", {
-      method: "POST",
-      body: JSON.stringify({
-        rollen_id: data[0].id,
-        aktion: "Neu angelegt",
-        laenge,
-        bemerkung
-      })
-    });
-  }
+  await api("historie", {
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: data[0].id,
+      aktion: "Neu angelegt",
+      laenge,
+      bemerkung
+    })
+  });
+
+  await logAktion(
+    "Neue Rolle erstellt",
+    kennung,
+    `Typ: ${typ}, Länge: ${laenge} m`
+  );
+}
 
   alert("Rolle gespeichert");
   location.reload();
@@ -710,19 +728,25 @@ async function markRolleVerbraucht(id) {
   });
 
   await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      datum: new Date().toISOString(),
-      aktion: "Verbraucht",
-      laenge: rolle.aktuelle_laenge,
-      verbrauch: 0,
-      bemerkung: "Rolle wurde archiviert"
-    })
-  });
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    datum: new Date().toISOString(),
+    aktion: "Verbraucht",
+    laenge: rolle.aktuelle_laenge,
+    verbrauch: 0,
+    bemerkung: "Rolle wurde archiviert"
+  })
+});
 
-  alert("Rolle wurde als verbraucht markiert.");
-  showAuswahl();
+await logAktion(
+  "Verbraucht",
+  rolle.kennung,
+  `Typ: ${rolle.typ}, Restlänge: ${rolle.aktuelle_laenge} m`
+);
+
+alert("Rolle wurde als verbraucht markiert.");
+showAuswahl();
 }
   async function loadTypEditor() {
   const typ = document.getElementById("typSelect").value;
@@ -1252,22 +1276,28 @@ if (verbrauch !== null && verbrauch < 0) {
   }
 
   await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      aktion: aktion,
-      laenge: neueLaenge,
-      bemerkung: auftrag,
-      verbrauch: verbrauch,
-      typ: r.typ,
-      auftrag: auftrag
-    })
-  });
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    aktion: aktion,
+    laenge: neueLaenge,
+    bemerkung: auftrag,
+    verbrauch: verbrauch,
+    typ: r.typ,
+    auftrag: auftrag
+  })
+});
 
-  alert("Gespeichert");
-  location.reload();
-}
+await logAktion(
+  aktion,
+  r.kennung,
+  `Typ: ${r.typ}, Kunde/Auftrag: ${auftrag || "-"}, Verbrauch: ${
+    verbrauch ?? 0
+  } m, Neue Länge: ${neueLaenge} m`
+);
 
+alert("Gespeichert");
+location.reload();
 async function zuElectrotherm(id) {
   window.forceStatus = "Electrotherm";
   await speichern(id);
@@ -1297,14 +1327,44 @@ async function saveBemerkung(id) {
 async function deleteRolle(id) {
   if (!confirm("Diese Rolle wirklich löschen? Die Historie wird auch gelöscht.")) return;
 
-  await api("historie?rollen_id=eq." + id, { method: "DELETE" });
-  await api("rollen?id=eq." + id, { method: "DELETE" });
+  const daten = await api("rollen?id=eq." + id + "&select=*");
+
+  if (!daten.length) {
+    alert("Rolle nicht gefunden.");
+    return;
+  }
+
+  const rolle = daten[0];
+
+  await logAktion(
+    "Rolle gelöscht",
+    rolle.kennung,
+    `Typ: ${rolle.typ}, Status: ${rolle.status}, Länge: ${rolle.aktuelle_laenge} m`
+  );
+
+  await api("historie?rollen_id=eq." + id, {
+    method: "DELETE"
+  });
+
+  await api("rollen?id=eq." + id, {
+    method: "DELETE"
+  });
 
   alert("Rolle gelöscht");
   location.href = "index.html";
 }
+  
   async function rolleFreigeben(id) {
   if (!confirm("Diese Rolle freigeben?")) return;
+
+  const daten = await api("rollen?id=eq." + id + "&select=*");
+
+  if (!daten.length) {
+    alert("Rolle nicht gefunden.");
+    return;
+  }
+
+  const rolle = daten[0];
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
@@ -1323,9 +1383,16 @@ async function deleteRolle(id) {
     })
   });
 
+  await logAktion(
+    "Rolle freigegeben",
+    rolle.kennung,
+    `Typ: ${rolle.typ}, Status: Im Lager`
+  );
+
   alert("Rolle wurde freigegeben.");
   showAuswahl();
 }
+  
   async function showAuswahl() {
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
     const filter = localStorage.getItem("rolleFilter") || "aktiv";
@@ -1520,20 +1587,26 @@ async function saveRolleEditor(id) {
   }
 
   await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      kennung: kennung,
-      typ: typ,
-      urspruengliche_laenge: ursprung,
-      aktuelle_laenge: aktuell,
-      status: status,
-      bemerkung: bemerkung,
-      auftrag: auftrag
-    })
-  });
+  method: "PATCH",
+  body: JSON.stringify({
+    kennung: kennung,
+    typ: typ,
+    urspruengliche_laenge: ursprung,
+    aktuelle_laenge: aktuell,
+    status: status,
+    bemerkung: bemerkung,
+    auftrag: auftrag
+  })
+});
 
-  alert("Rolle geändert");
-  location.reload();
+await logAktion(
+  "Rolle geändert",
+  kennung,
+  `Typ: ${typ}, Status: ${status}, Aktuell: ${aktuell} m`
+);
+
+alert("Rolle geändert");
+location.reload();
 }
 
   async function showKunden() {
@@ -1624,22 +1697,42 @@ async function renameKunde(id, alterName) {
 
   await api("historie?auftrag=eq." + encodeURIComponent(alterName), {
     method: "PATCH",
-    body: JSON.stringify({ auftrag: neuerName, bemerkung: neuerName })
+    body: JSON.stringify({
+      auftrag: neuerName,
+      bemerkung: neuerName
+    })
   });
+
+  await logAktion(
+    "Kunde umbenannt",
+    "",
+    `Alter Name: ${alterName}, Neuer Name: ${neuerName}`
+  );
 
   alert("Kunde geändert");
   location.reload();
 }
 
 async function deleteKunde(id, name) {
-  if (!confirm("Diesen Kunden wirklich löschen? Historie bleibt erhalten.")) return;
+  if (!confirm("Diesen Kunden wirklich löschen? Historie bleibt erhalten.")) {
+    return;
+  }
 
-  await api("kunden?id=eq." + id, { method: "DELETE" });
+  await api("kunden?id=eq." + id, {
+    method: "DELETE"
+  });
+
+  await logAktion(
+    "Kunde gelöscht",
+    "",
+    `Name: ${name}`
+  );
 
   alert("Kunde gelöscht");
   location.reload();
 }
-  async function addKunde() {
+
+async function addKunde() {
   const name = document.getElementById("neuerKundeName").value.trim();
 
   if (!name) {
@@ -1662,6 +1755,12 @@ async function deleteKunde(id, name) {
       name: name
     })
   });
+
+  await logAktion(
+    "Kunde hinzugefügt",
+    "",
+    `Name: ${name}`
+  );
 
   alert("Kunde hinzugefügt");
   location.reload();
