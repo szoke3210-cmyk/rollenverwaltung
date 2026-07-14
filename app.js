@@ -151,26 +151,26 @@ async function downloadBackup(button) {
   }
 
   try {
-
     if (button) {
       button.disabled = true;
       button.textContent = "Backup wird erstellt...";
     }
 
-   const [rollen, historie, kunden] = await Promise.all([
-  ladeAlleDatensaetze("rollen"),
-  ladeAlleDatensaetze("historie"),
-  ladeAlleDatensaetze("kunden")
-]);
-    
-   const backup = {
-  erstellt_am: new Date().toISOString(),
-  rollen,
-  historie,
-  kunden
-};
+    const [rollen, historie, kunden] = await Promise.all([
+      ladeAlleDatensaetze("rollen"),
+      ladeAlleDatensaetze("historie"),
+      ladeAlleDatensaetze("kunden")
+    ]);
+
+    const backup = {
+      erstellt_am: new Date().toISOString(),
+      rollen,
+      historie,
+      kunden
+    };
 
     const json = JSON.stringify(backup, null, 2);
+
     const blob = new Blob([json], {
       type: "application/json;charset=utf-8"
     });
@@ -192,21 +192,22 @@ async function downloadBackup(button) {
     URL.revokeObjectURL(url);
 
     await logAktion(
-  "Backup erstellt",
-  "",
-  `Rollen: ${rollen.length}, Historie: ${historie.length}, Kunden: ${kunden.length}, Typen: ${typen.length}`
-);
-    
+      "Backup erstellt",
+      "",
+      `Rollen: ${rollen.length}, Historie: ${historie.length}, Kunden: ${kunden.length}`
+    );
+
     alert(
       `Backup erfolgreich erstellt.\n\n` +
       `Rollen: ${rollen.length}\n` +
       `Historie: ${historie.length}\n` +
-      `Kunden: ${kunden.length}\n` +
-      `Typen: ${typen.length}`
+      `Kunden: ${kunden.length}`
     );
+
   } catch (error) {
     console.error("Backup-Fehler:", error);
     alert("Backup konnte nicht erstellt werden:\n" + error.message);
+
   } finally {
     if (button) {
       button.disabled = false;
