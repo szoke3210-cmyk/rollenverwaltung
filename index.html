@@ -1092,6 +1092,12 @@ ${isAdmin ? `
 </div>
 `;
 
+  ${isAdmin && r.status === "Nicht freigegeben" ? `
+  <button class="green" onclick="freigeben(${r.id})">
+    ✅ Freigeben
+  </button>
+` : ""}
+
 if (r.status === "Im Lager") {
   html += `
     <div class="box">
