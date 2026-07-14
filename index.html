@@ -431,6 +431,7 @@ async function api(path, options = {}) {
 
   return await res.json();
 }
+  
 async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
 
@@ -450,12 +451,36 @@ async function showList() {
   let typen = {};
 
   alle.forEach(r => {
-    if (!typen[r.typ]) typen[r.typ] = { count:0, meter:0, lager:0, electro:0 };
-    typen[r.typ].count++;
-    typen[r.typ].meter += Number(r.aktuelle_laenge);
-    if (r.status === "Electrotherm") typen[r.typ].electro++;
-    else typen[r.typ].lager++;
-  });
+  if (!typen[r.typ]) {
+    typen[r.typ] = {
+      count: 0,
+      meter: 0,
+      lager: 0,
+      electro: 0,
+      nichtFreigegeben: 0,
+      verbraucht: 0
+    };
+  }
+
+  typen[r.typ].count++;
+  typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
+
+  if (r.status === "Im Lager") {
+    typen[r.typ].lager++;
+  }
+
+  if (r.status === "Electrotherm") {
+    typen[r.typ].electro++;
+  }
+
+  if (r.status === "Nicht freigegeben") {
+    typen[r.typ].nichtFreigegeben++;
+  }
+
+  if (r.status === "Verbraucht") {
+    typen[r.typ].verbraucht++;
+  }
+});
 
   let typOptions = Object.keys(typen).sort().map(t => `<option value="${t}">${t}</option>`).join("");
 
@@ -523,9 +548,11 @@ if (!typFilter) {
 
       <div class="big">${typen[t].meter} m</div>
 
-      <p>${typen[t].count} Rollen</p>
-      <p>Im Lager: ${typen[t].lager}</p>
-      <p>Electrotherm: ${typen[t].electro}</p>
+      <p>${typen[t].count} Rollen insgesamt</p>
+<p>Im Lager: ${typen[t].lager}</p>
+<p>Nicht freigegeben: ${typen[t].nichtFreigegeben}</p>
+<p>Electrotherm: ${typen[t].electro}</p>
+<p>Verbraucht: ${typen[t].verbraucht}</p>
   </div>
 </div>
     `;
