@@ -1069,35 +1069,39 @@ html += `
 
   <label>QR Bemerkung</label>
   <textarea id="qr_bemerkung">${r.qr_bemerkung || ""}</textarea>
+
   ${r.qr_bemerkung_datum ? `
-<p style="color:#666;font-size:13px;margin-top:5px;">
-  Letzte Änderung:
-  ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
-</p>
-` : ""}
+    <p style="color:#666;font-size:13px;margin-top:5px;">
+      Letzte Änderung:
+      ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
+    </p>
+  ` : ""}
 
   <button onclick="saveBemerkung(${r.id})">
     Bemerkungen speichern
   </button>
 
   <button class="red" onclick="markRolleVerbraucht(${r.id})">
-  Als verbraucht markieren
-</button>
-
-${isAdmin ? `
-  <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
-    Rolle löschen
+    Als verbraucht markieren
   </button>
-` : ""}
-</div>
-`;
 
   ${isAdmin && r.status === "Nicht freigegeben" ? `
-  <button class="green" onclick="freigeben(${r.id})">
-    ✅ Freigeben
-  </button>
-` : ""}
+    <button class="green" onclick="freigeben(${r.id})">
+      ✅ Freigeben
+    </button>
+  ` : ""}
 
+  ${isAdmin ? `
+    <button
+      onclick="deleteRolle(${r.id})"
+      style="background:#dc3545;color:white;margin-left:10px;"
+    >
+      Rolle löschen
+    </button>
+  ` : ""}
+</div>
+`;
+  
 if (r.status === "Im Lager") {
   html += `
     <div class="box">
