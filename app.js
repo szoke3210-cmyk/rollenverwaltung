@@ -466,48 +466,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-
-async function initSupabaseSession() {
-  const {
-    data: { session },
-    error
-  } = await supabaseClient.auth.getSession();
-
-  if (error) {
-    console.error("Fehler beim Laden der Session:", error);
-    return false;
-  }
-
-  if (!session) {
-    return false;
-  }
-
-  const user = session.user;
-
-  // Benutzerrolle aus der Datenbank laden
-  const { data: profil, error: profilError } = await supabaseClient
-    .from("profile")
-    .select("rolle")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profilError) {
-    console.error("Fehler beim Laden der Benutzerrolle:", profilError);
-  }
-
-  isAdmin = profil?.rolle === "admin";
-
-  const userAnzeige = document.getElementById("userAnzeige");
-  if (userAnzeige) {
-    userAnzeige.innerHTML = `
-      <span>${escapeHtml(user.email || "")}</span>
-      <button onclick="logout()">Logout</button>
-    `;
-  }
-
-  return true;
-}
-
 async function startApp() {
   try {
     const eingeloggt = await initSupabaseSession();
