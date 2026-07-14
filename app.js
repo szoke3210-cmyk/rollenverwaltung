@@ -8,6 +8,35 @@ let isAdmin = false;
 let currentUserRole = "user";
 let currentUser = null;
   
+async function freigeben(id) {
+  if (!confirm("Diese Rolle freigeben?")) return;
+
+  await api("rollen?id=eq." + id, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status: "Im Lager"
+    })
+  });
+
+  await api("historie", {
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: id,
+      aktion: "Freigegeben",
+      datum: new Date().toISOString()
+    })
+  });
+
+  await logAktion(
+    "Rolle freigegeben",
+    "",
+    `Rollen-ID: ${id}`
+  );
+
+  alert("Rolle wurde freigegeben.");
+  location.reload();
+}
+
 async function api(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
     ...options,
