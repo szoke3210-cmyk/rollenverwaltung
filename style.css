@@ -1147,3 +1147,14 @@ tr:not(:first-child):hover {
   font-size: 11px;
   width: auto;
 }
+
+.top-buttons {
+  padding: 6px 10px !important;
+}
+
+.top-buttons .extra-urlaub-button {
+  margin: 0;
+  padding: 3px 7px;
+  font-size: 11px;
+  min-height: 28px;
+}
