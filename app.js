@@ -466,6 +466,130 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+async function loadQrBemerkungen(rollenId) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/qr_bemerkungen?rollen_id=eq.${rollenId}&select=*&order=erstellt_am.desc`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${accessToken || SUPABASE_KEY}`
+        }
+      }
+    );
+
+    if (!res.ok) {
+      console.error("QR Bemerkungen Fehler:", await res.text());
+      return [];
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("QR Bemerkungen Fehler:", error);
+    return [];
+  }
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderQrBemerkungenListe(bemerkungen, adminModus = false) {
+  if (!bemerkungen.length) {
+    return `
+      <div class="qr-bemerkung-empty">
+        Noch keine QR-Bemerkungen vorhanden.
+      </div>
+    `;
+  }
+
+  return bemerkungen.map(eintrag => {
+    const datum = new Date(eintrag.erstellt_am).toLocaleString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    return `
+      <div class="qr-bemerkung-eintrag">
+        <div class="qr-bemerkung-kopf">
+          <strong>🕒 ${datum}</strong>
+
+          ${adminModus ? `
+            <button
+              class="delete-small"
+              onclick="deleteQrBemerkung(${eintrag.id})"
+              title="Bemerkung löschen"
+            >
+              Löschen
+            </button>
+          ` : ""}
+        </div>
+
+        <div class="qr-bemerkung-text">
+          ${escapeHtml(eintrag.bemerkung)}
+        </div>
+
+        ${eintrag.erstellt_von ? `
+          <div class="qr-bemerkung-benutzer">
+            ${escapeHtml(eintrag.erstellt_von)}
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+async function deleteQrBemerkung(id) {
+  if (!isAdmin) {
+    alert("Nur Administratoren dürfen Bemerkungen löschen.");
+    return;
+  }
+
+  const bestaetigt = confirm(
+    "Möchtest du diese QR-Bemerkung wirklich löschen?"
+  );
+
+  if (!bestaetigt) return;
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/qr_bemerkungen?id=eq.${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    if (!res.ok) {
+      console.error("Löschen Fehler:", await res.text());
+      alert("Bemerkung konnte nicht gelöscht werden.");
+      return;
+    }
+
+    await logAktion(
+      "QR-Bemerkung gelöscht",
+      "",
+      `Eintrag-ID: ${id}`
+    );
+
+    await showDetail();
+  } catch (error) {
+    console.error(error);
+    alert("Bemerkung konnte nicht gelöscht werden.");
+  }
+}
+
 async function startApp() {
   try {
     const eingeloggt = await initSupabaseSession();
