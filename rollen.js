@@ -9,10 +9,10 @@ async function showList() {
   if (!isAdmin) {
   rollen = rollen.filter(r =>
     r.status === "Im Lager" ||
-    r.status === "Electrotherm"
+    r.status === "Electrotherm" ||
+    r.status === "Nicht freigegeben"
   );
 }
-
   let alle = await api("rollen?select=*");
   let typen = {};
 
