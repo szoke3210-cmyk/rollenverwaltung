@@ -1029,14 +1029,19 @@ document.getElementById("app").innerHTML = html;
 }
   
 async function showDetail() {
-  const daten = await api("rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*");
-  if (!daten.length) {
-    document.getElementById("app").innerHTML = `<div class="box"><h2>Rolle nicht gefunden</h2><button onclick="location.href='index.html'">Zur Übersicht</button></div>`;
-    return;
-  }
+  const daten = await api(
+  "rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*"
+);
+
+if (!daten.length) {
+  document.getElementById("app").innerHTML =
+    "<h2>Rolle nicht gefunden</h2>";
+  return;
+}
+
+const r = daten[0];
+
 const qrBemerkungen = await loadQrBemerkungen(r.id);
-  
-  const r = daten[0];
   const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
   const historie = await api("historie?rollen_id=eq." + r.id + "&select=*&order=datum.desc");
 const kunden = await api("kunden?select=*&order=name.asc");
