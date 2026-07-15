@@ -97,7 +97,16 @@ if (!typFilter) {
   html += `
     <div class="box">
       <button onclick="location.href='?page=statistik'">📊 Statistik</button>
-      <button onclick="location.href='?page=scanner'">QR-Code scannen</button>
+      <button onclick="location.href='?page=scanner'">
+  QR-Code scannen
+</button>
+
+<button
+  class="extra-urlaub-button"
+  onclick="window.open('extra-urlaub.jpg', '_blank')"
+>
+  Extra Urlaub
+</button>
      ${isAdmin ? `
   <button onclick="location.href='?page=kunden'">
     Kunde bearbeiten
