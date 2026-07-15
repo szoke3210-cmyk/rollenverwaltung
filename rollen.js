@@ -771,13 +771,21 @@ if (verbrauch !== null && verbrauch < 0) {
 }
 
   if (auftragSelect === "__neu" && auftragNeu) {
-    await api("kunden", {
-      method: "POST",
-      body: JSON.stringify({
-        name: auftragNeu
-      })
-    });
+  const neuerKunde = await api("kunden", {
+    method: "POST",
+    headers: {
+      "Prefer": "return=representation"
+    },
+    body: JSON.stringify({
+      name: auftragNeu
+    })
+  });
+
+  if (!neuerKunde || neuerKunde.length === 0) {
+    alert("Der neue Kunde konnte nicht gespeichert werden.");
+    return;
   }
+}
 
   const nichtsGeaendert =
     Number(r.aktuelle_laenge) === Number(neueLaenge) &&
