@@ -413,9 +413,10 @@ async function showDetail() {
   `;
 
   html += `
-    <div class="box">
-      <h3>Interne Bemerkung</h3>
+  <div class="box">
+    <h3>Interne Bemerkung</h3>
 
+    ${isAdmin ? `
       <textarea
         id="bemerkungEdit"
         placeholder="Interne Bemerkung eingeben..."
@@ -424,13 +425,25 @@ async function showDetail() {
       <button onclick="saveInterneBemerkung(${r.id})">
         Interne Bemerkung speichern
       </button>
+    ` : `
+      <div style="
+        padding:10px;
+        background:#f8f9fa;
+        border-radius:8px;
+      ">
+        ${escapeHtml(r.bemerkung || "-")}
+      </div>
+    `}
 
-      <button
-        class="red"
-        onclick="markRolleVerbraucht(${r.id})"
-      >
-        Als verbraucht markieren
-      </button>
+      ${r.status !== "Nicht freigegeben" &&
+  r.status !== "Verbraucht" ? `
+  <button
+    class="red"
+    onclick="markRolleVerbraucht(${r.id})"
+  >
+    Als verbraucht markieren
+  </button>
+` : ""}
 
       ${isAdmin && r.status === "Nicht freigegeben" ? `
         <button
@@ -1049,6 +1062,12 @@ async function freigeben(id) {
 }
 
 async function saveInterneBemerkung(id) {
+
+  if (!isAdmin) {
+    alert("Nur Administratoren dürfen die interne Bemerkung ändern.");
+    return;
+  }
+
   const input = document.getElementById("bemerkungEdit");
 
   if (!input) {
