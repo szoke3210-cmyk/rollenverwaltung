@@ -1962,21 +1962,26 @@ async function addKunde() {
     );
 
     if (!res.ok) {
-      const fehler = await res.text();
-      console.error("QR Bemerkung Fehler:", fehler);
-      alert("Bemerkung konnte nicht gespeichert werden.");
-      return;
-    }
+  const fehler = await res.text();
+  console.error("QR Bemerkung Fehler:", fehler);
+  alert("Bemerkung konnte nicht gespeichert werden.");
+  return;
+}
 
-    input.value = "";
+await logAktion(
+  "QR-Bemerkung hinzugefügt",
+  kennung || "",
+  text,
+  currentUser?.email || "Öffentlicher QR-Zugriff"
+);
 
-    alert("Bemerkung gespeichert.");
+input.value = "";
 
-    if (typeof showPublicRolle === "function" && !accessToken) {
-      await showPublicRolle();
-    } else if (typeof showDetail === "function") {
-      await showDetail();
-    }
+if (accessToken) {
+  await showDetail();
+} else {
+  await showPublicRolle();
+}
   } catch (error) {
     console.error(error);
     alert("Bemerkung konnte nicht gespeichert werden.");
