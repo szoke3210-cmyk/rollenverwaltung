@@ -152,6 +152,57 @@ canvas{margin-top:10px;max-width:100%}
   font-weight: bold;
 }
 
+.qr-bemerkung-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.qr-bemerkung-eintrag {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-left: 4px solid #2563eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.qr-bemerkung-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+  font-size: 14px;
+}
+
+.qr-bemerkung-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+
+.qr-bemerkung-benutzer {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.qr-bemerkung-empty {
+  padding: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.delete-small {
+  width: auto;
+  padding: 5px 9px;
+  margin: 0;
+  background: #dc2626;
+  color: white;
+  font-size: 12px;
+}
+
 </style>
 
 
