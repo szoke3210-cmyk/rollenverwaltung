@@ -273,7 +273,8 @@ async function showStatistik() {
   </div>
 `;
 
-document.getElementById("app").innerHTML = html;
+  document.getElementById("app").innerHTML = html;
+}
 
 function anwendenStatistikZeitraum() {
   const vonInput =
