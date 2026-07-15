@@ -97,26 +97,40 @@ if (!typFilter) {
   html += `
     <div class="top-buttons">
 
-  <div class="box left-buttons-box">
-    <button onclick="location.href='?page=statistik'">
-      📊 Statistik
-    </button>
+      <div class="box left-buttons-box">
+        <button onclick="location.href='?page=statistik'">
+          📊 Statistik
+        </button>
 
-    <button onclick="location.href='?page=scanner'">
-      QR-Code scannen
-    </button>
-  </div>
+        <button onclick="location.href='?page=scanner'">
+          QR-Code scannen
+        </button>
 
-  <div class="box extra-urlaub-box">
-    <button
-      class="extra-urlaub-button"
-      onclick="window.open('extra-urlaub.jpg', '_blank')"
-    >
-      Extra Urlaub
-    </button>
-  </div>
+        ${isAdmin ? `
+          <button onclick="location.href='?page=kunden'">
+            Kunde bearbeiten
+          </button>
 
-</div>
+          <button onclick="location.href='?page=auswahl'">
+            Rollen bearbeiten
+          </button>
+
+          <button onclick="location.href='?page=aktivitaet'">
+            Aktivität
+          </button>
+        ` : ""}
+      </div>
+
+      <div class="box extra-urlaub-box">
+        <button
+          class="extra-urlaub-button"
+          onclick="window.open('extra-urlaub.jpg', '_blank')"
+        >
+          Extra Urlaub
+        </button>
+      </div>
+
+    </div>
   `;
 }
   
