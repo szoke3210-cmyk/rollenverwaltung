@@ -1123,3 +1123,27 @@ tr:not(:first-child):hover {
     grid-template-columns: 1fr;
   }
 }
+
+.top-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.left-buttons-box {
+  display: flex;
+  gap: 10px;
+}
+
+.extra-urlaub-box {
+  padding: 8px;
+  width: auto;
+  display: inline-flex;
+  margin: 0;
+}
+
+.extra-urlaub-button {
+  padding: 4px 8px;
+  font-size: 11px;
+  width: auto;
+}
