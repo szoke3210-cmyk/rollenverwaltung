@@ -359,3 +359,711 @@ body {
   }
 }
 
+/* ==================================================
+   SAVELINE – MODERN UI
+   ================================================== */
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+
+  --success: #15803d;
+  --success-dark: #166534;
+
+  --warning: #ea580c;
+  --warning-dark: #c2410c;
+
+  --danger: #dc2626;
+  --danger-dark: #b91c1c;
+
+  --secondary: #475569;
+  --secondary-dark: #334155;
+
+  --excel: #107c41;
+  --excel-dark: #0b5f31;
+
+  --text: #172033;
+  --text-light: #64748b;
+
+  --border: #dbe3ed;
+  --surface: rgba(255, 255, 255, 0.95);
+  --surface-soft: rgba(248, 250, 252, 0.96);
+
+  --shadow:
+    0 8px 24px rgba(15, 23, 42, 0.09);
+
+  --shadow-hover:
+    0 12px 30px rgba(15, 23, 42, 0.14);
+}
+
+
+/* ==================================================
+   ALAPOLDAL
+   ================================================== */
+
+body {
+  font-family:
+    Inter,
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+
+  background-color: #eef2f7;
+  background-image:
+    url("./saveway-background.png?v=4");
+  background-repeat: repeat;
+  background-position: top left;
+  background-size: 500px auto;
+  background-attachment: fixed;
+}
+
+
+/* ==================================================
+   FEJLÉC
+   ================================================== */
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+
+  padding: 14px 24px;
+
+  background:
+    rgba(255, 255, 255, 0.88);
+
+  border-bottom:
+    1px solid rgba(203, 213, 225, 0.8);
+
+  box-shadow:
+    0 3px 14px rgba(15, 23, 42, 0.07);
+
+  backdrop-filter: blur(8px);
+}
+
+.header-logo-link {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  text-decoration: none;
+}
+
+.header-logo {
+  display: block;
+  width: 260px;
+  max-width: 58vw;
+  height: auto;
+  border-radius: 8px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-email {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.user-role {
+  display: inline-block;
+  padding: 3px 8px;
+  margin-left: 6px;
+
+  border-radius: 999px;
+
+  background: #f59e0b;
+  color: #111827;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* ==================================================
+   TARTALOM
+   ================================================== */
+
+.container {
+  width: min(1120px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 22px 0 40px;
+}
+
+
+/* ==================================================
+   DOBOZOK / KÁRTYÁK
+   ================================================== */
+
+.box {
+  background: var(--surface);
+
+  padding: 22px;
+  margin-bottom: 18px;
+
+  border:
+    1px solid rgba(203, 213, 225, 0.78);
+
+  border-radius: 18px;
+
+  box-shadow: var(--shadow);
+
+  backdrop-filter: blur(4px);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.grid > .box:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.box h2,
+.box h3,
+.box h4 {
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.box h2 {
+  margin-top: 0;
+  font-size: 25px;
+}
+
+.box h3 {
+  font-size: 20px;
+}
+
+.box h4 {
+  font-size: 17px;
+}
+
+
+/* ==================================================
+   ŰRLAPMEZŐK
+   ================================================== */
+
+label {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 5px;
+
+  color: #334155;
+
+  font-size: 14px;
+  font-weight: 750;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+
+  padding: 12px 14px;
+  margin: 4px 0 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 11px;
+
+  background: var(--surface-soft);
+  color: var(--text);
+
+  font-family: inherit;
+  font-size: 16px;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+input:hover,
+textarea:hover,
+select:hover {
+  border-color: #94a3b8;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+
+  border-color: var(--primary);
+
+  background: white;
+
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.13);
+}
+
+textarea {
+  min-height: 105px;
+  resize: vertical;
+}
+
+select {
+  cursor: pointer;
+}
+
+
+/* ==================================================
+   GOMBOK
+   ================================================== */
+
+button {
+  width: auto;
+  min-height: 44px;
+
+  padding: 11px 17px;
+  margin: 5px 6px 5px 0;
+
+  border: none;
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #3b82f6,
+      var(--primary)
+    );
+
+  color: white;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 10px rgba(37, 99, 235, 0.22);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+
+  filter: brightness(0.97);
+
+  box-shadow:
+    0 7px 16px rgba(37, 99, 235, 0.26);
+}
+
+button:active {
+  transform: translateY(0);
+
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.18);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* Zöld */
+
+button.green {
+  background:
+    linear-gradient(
+      180deg,
+      #22a34a,
+      var(--success)
+    );
+
+  box-shadow:
+    0 4px 10px rgba(21, 128, 61, 0.22);
+}
+
+button.green:hover {
+  box-shadow:
+    0 7px 16px rgba(21, 128, 61, 0.28);
+}
+
+
+/* Narancssárga */
+
+button.orange {
+  background:
+    linear-gradient(
+      180deg,
+      #f97316,
+      var(--warning)
+    );
+
+  color: white;
+
+  box-shadow:
+    0 4px 10px rgba(234, 88, 12, 0.22);
+}
+
+
+/* Piros */
+
+button.red {
+  background:
+    linear-gradient(
+      180deg,
+      #ef4444,
+      var(--danger)
+    );
+
+  box-shadow:
+    0 4px 10px rgba(220, 38, 38, 0.22);
+}
+
+
+/* Szürke másodlagos */
+
+button.secondary {
+  background:
+    linear-gradient(
+      180deg,
+      #64748b,
+      var(--secondary)
+    );
+
+  box-shadow:
+    0 4px 10px rgba(71, 85, 105, 0.2);
+}
+
+
+/* Excel */
+
+button.excel {
+  background:
+    linear-gradient(
+      180deg,
+      #169b51,
+      var(--excel)
+    );
+
+  box-shadow:
+    0 4px 10px rgba(16, 124, 65, 0.23);
+}
+
+
+/* Kijelentkezés */
+
+.logout-button {
+  width: auto;
+  min-height: 38px;
+
+  padding: 8px 14px;
+  margin: 0;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ef4444,
+      #dc2626
+    );
+
+  font-size: 13px;
+}
+
+
+/* Kis törlés gomb */
+
+.delete-small {
+  width: auto;
+  min-height: auto;
+
+  padding: 6px 10px;
+  margin: 0;
+
+  border-radius: 8px;
+
+  background: var(--danger);
+
+  font-size: 12px;
+
+  box-shadow: none;
+}
+
+
+/* Gombsor */
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+.button-row button {
+  margin: 0;
+}
+
+
+/* ==================================================
+   TÁBLÁZAT
+   ================================================== */
+
+table {
+  width: 100%;
+  overflow: hidden;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: var(--surface);
+
+  border:
+    1px solid rgba(203, 213, 225, 0.85);
+
+  border-radius: 15px;
+
+  box-shadow: var(--shadow);
+}
+
+th {
+  padding: 13px 12px;
+
+  background: #eef2f7;
+  color: #334155;
+
+  border-bottom: 1px solid #cbd5e1;
+
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+td {
+  padding: 13px 12px;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  color: #1e293b;
+
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:not(:first-child) {
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+tr:not(:first-child):hover {
+  background: #eff6ff;
+}
+
+
+/* ==================================================
+   STÁTUSZOK
+   ================================================== */
+
+.status {
+  display: inline-block;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+
+/* ==================================================
+   GRID / TÍPUSKÁRTYÁK
+   ================================================== */
+
+.grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(230px, 1fr));
+
+  gap: 15px;
+}
+
+.big {
+  margin: 6px 0;
+
+  font-size: 29px;
+  font-weight: 850;
+
+  color: #0f172a;
+}
+
+
+/* ==================================================
+   STATISZTIKA
+   ================================================== */
+
+.statistik-filter-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-bottom: 8px;
+}
+
+
+/* ==================================================
+   QR-MEGJEGYZÉSEK
+   ================================================== */
+
+.qr-bemerkung-eintrag {
+  padding: 14px;
+
+  border:
+    1px solid #dbe3ed;
+
+  border-left:
+    5px solid var(--primary);
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.qr-bemerkung-kopf {
+  margin-bottom: 8px;
+}
+
+.qr-bemerkung-text {
+  color: #1e293b;
+  line-height: 1.55;
+}
+
+.qr-bemerkung-benutzer {
+  color: var(--text-light);
+}
+
+
+/* ==================================================
+   LOGIN
+   ================================================== */
+
+.login-box {
+  border:
+    1px solid rgba(203, 213, 225, 0.8);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 16px 45px rgba(15, 23, 42, 0.15);
+}
+
+
+/* ==================================================
+   MOBIL
+   ================================================== */
+
+@media (max-width: 700px) {
+
+  .main-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    padding: 12px 14px;
+  }
+
+  .header-logo {
+    width: 205px;
+    max-width: 72vw;
+  }
+
+  .header-right,
+  #userInfo {
+    width: 100%;
+  }
+
+  #userInfo {
+    justify-content: space-between;
+  }
+
+  .user-email {
+    max-width: 210px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .container {
+    width: min(100% - 18px, 1120px);
+    padding-top: 12px;
+  }
+
+  .box {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  button {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .statistik-filter-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th,
+  td {
+    padding: 11px 10px;
+  }
+}
