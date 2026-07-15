@@ -95,35 +95,29 @@ if (statusFilter === "nichtfreigegeben") {
   
 if (!typFilter) {
   html += `
-    <div class="box">
-      <button onclick="location.href='?page=statistik'">📊 Statistik</button>
-      <button onclick="location.href='?page=scanner'">
-  QR-Code scannen
-</button>
+    <div class="box top-buttons">
 
-<button
-  class="extra-urlaub-button"
-  onclick="window.open('extra-urlaub.jpg', '_blank')"
->
-  Extra Urlaub
-</button>
-     ${isAdmin ? `
-  <button onclick="location.href='?page=kunden'">
-    Kunde bearbeiten
-  </button>
+      <div class="left-buttons">
+        <button onclick="location.href='?page=statistik'">
+          📊 Statistik
+        </button>
 
-  <button onclick="location.href='?page=aktivitaet'">
-    📋 Aktivitätsprotokoll
-  </button>
+        <button onclick="location.href='?page=scanner'">
+          QR-Code scannen
+        </button>
+      </div>
 
-  <button onclick="downloadBackup(this)">
-    💾 Backup herunterladen
-  </button>
-` : ""}
+      <button
+        class="extra-urlaub-button"
+        onclick="window.open('extra-urlaub.jpg', '_blank')"
+      >
+        Extra Urlaub
+      </button>
+
     </div>
   `;
 }
-
+  
 html += `
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
