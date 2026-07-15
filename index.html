@@ -56,33 +56,41 @@
   }
 
   const r = rollen[0];
+  const qrBemerkungen = await loadQrBemerkungen(r.id);
 
   app.innerHTML = `
-    <div class="container">
-      <div class="box">
-        <h2>Rolle ${r.kennung}</h2>
+<div class="container">
+  <div class="box">
+    <h2>Rolle ${r.kennung}</h2>
 
-        <p><b>Typ:</b> ${r.typ || ""}</p>
-        <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge || 0} m</p>
-        <p><b>Status:</b> ${r.status || ""}</p>
-        <p><b>Bemerkung:</b> ${r.bemerkung || ""}</p>
+    <p><b>Typ:</b> ${r.typ || ""}</p>
+    <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge || 0} m</p>
+    <p><b>Status:</b> ${r.status || ""}</p>
+    <p><b>Bemerkung:</b> ${r.bemerkung || ""}</p>
 
-        <hr>
+    <hr>
 
-        <h3>Bemerkung hinzufügen</h3>
-        <textarea id="publicBemerkung" placeholder="Bemerkung eingeben...">${r.qr_bemerkung || ""}</textarea>
-        ${r.qr_bemerkung_datum ? `
-<p style="color:#666;font-size:13px;">
-  Letzte Änderung:
-  ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
-</p>
-` : ""}
-        <button onclick="savePublicBemerkung(${r.id})">Bemerkung speichern</button>
-      </div>
+    <h3>QR-Bemerkungen</h3>
+
+    <div class="qr-bemerkung-liste">
+      ${renderQrBemerkungenListe(qrBemerkungen, false)}
     </div>
-  `;
-}
 
+    <label>Neue Bemerkung</label>
+
+    <textarea
+      id="publicBemerkung"
+      placeholder="Neue Bemerkung eingeben..."
+    ></textarea>
+
+    <button onclick="savePublicBemerkung(${r.id})">
+      Bemerkung hinzufügen
+    </button>
+
+  </div>
+</div>
+`;
+}
 function statusBadge(status) {
   if (status === "Electrotherm") return `<span class="status reparatur">Electrotherm</span>`;
   return `<span class="status lager">Im Lager</span>`;
@@ -345,26 +353,30 @@ async function initSupabaseSession() {
 
     if (error) {
       console.error("Session Fehler:", error);
+
       accessToken = null;
       currentUser = null;
+      isAdmin = false;
+      currentUserRole = "user";
+
       showLoggedInUser();
       return false;
     }
 
     if (data?.session) {
-  accessToken = data.session.access_token;
-  currentUser = data.session.user;
+      accessToken = data.session.access_token;
+      currentUser = data.session.user;
 
-  await loadUserRole();
-  showLoggedInUser();
+      await loadUserRole();
+      showLoggedInUser();
 
-  return true;
-}
+      return true;
+    }
 
     accessToken = null;
     currentUser = null;
     isAdmin = false;
-currentUserRole = "user";
+    currentUserRole = "user";
 
     showLoggedInUser();
     return false;
@@ -374,6 +386,8 @@ currentUserRole = "user";
 
     accessToken = null;
     currentUser = null;
+    isAdmin = false;
+    currentUserRole = "user";
 
     showLoggedInUser();
     return false;
@@ -1020,7 +1034,8 @@ async function showDetail() {
     document.getElementById("app").innerHTML = `<div class="box"><h2>Rolle nicht gefunden</h2><button onclick="location.href='index.html'">Zur Übersicht</button></div>`;
     return;
   }
-
+const qrBemerkungen = await loadQrBemerkungen(r.id);
+  
   const r = daten[0];
   const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
   const historie = await api("historie?rollen_id=eq." + r.id + "&select=*&order=datum.desc");
@@ -1800,30 +1815,55 @@ async function addKunde() {
 }
   
    async function savePublicBemerkung(rollenId) {
-  const text = document.getElementById("publicBemerkung").value.trim();
+  const input = document.getElementById("publicBemerkung");
+  const text = input?.value.trim();
 
-  const publicHeaders = {
-    "apikey": SUPABASE_KEY,
-    "Authorization": "Bearer " + SUPABASE_KEY,
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-  };
-
-  const res = await fetch(SUPABASE_URL + "/rest/v1/rollen?id=eq." + rollenId, {
-    method: "PATCH",
-    headers: publicHeaders,
-    body: JSON.stringify({
-  qr_bemerkung: text,
-  qr_bemerkung_datum: new Date().toISOString()
-})
-  });
-
-  if (!res.ok) {
-    alert("Fehler: " + await res.text());
+  if (!text) {
+    alert("Bitte eine Bemerkung eingeben.");
     return;
   }
 
-  alert("Bemerkung gespeichert");
+  const body = {
+    rollen_id: rollenId,
+    bemerkung: text,
+    erstellt_von: currentUser?.email || "QR öffentlich"
+  };
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/qr_bemerkungen`,
+      {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${accessToken || SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify(body)
+      }
+    );
+
+    if (!res.ok) {
+      const fehler = await res.text();
+      console.error("QR Bemerkung Fehler:", fehler);
+      alert("Bemerkung konnte nicht gespeichert werden.");
+      return;
+    }
+
+    input.value = "";
+
+    alert("Bemerkung gespeichert.");
+
+    if (typeof showPublicRolle === "function" && !accessToken) {
+      await showPublicRolle();
+    } else if (typeof showDetail === "function") {
+      await showDetail();
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Bemerkung konnte nicht gespeichert werden.");
+  }
 }
   
 </script>
