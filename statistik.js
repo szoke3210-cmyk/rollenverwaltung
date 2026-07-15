@@ -257,9 +257,12 @@ async function showStatistik() {
   });
 
   html += `
-    <button onclick="location.href='index.html'">
-      Zur Übersicht
-    </button>
+    <button
+  class="back-button"
+  onclick="location.href='index.html'"
+>
+  Zur Übersicht
+</button>
   `;
 
   document.getElementById("app").innerHTML =
