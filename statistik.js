@@ -137,15 +137,19 @@ async function showStatistik() {
     ↻ Zurücksetzen
   </button>
 
-  <button
+    <button
     class="excel"
     onclick="downloadStatistikCSV()"
   >
     📊 Excel Export
   </button>
 </div>
-  `;
 
+      </div>
+    </div>
+
+    <div class="statistik-grid">
+  `;
   const monate =
     Object.keys(statistik)
       .sort()
@@ -256,19 +260,20 @@ async function showStatistik() {
     html += `</div>`;
   });
 
-  html += `
+ html += `
+  </div>
+
+  <div class="statistik-back-area">
     <button
-  class="back-button"
-  onclick="location.href='index.html'"
->
-  Zur Übersicht
-</button>
-  `;
+      class="back-button"
+      onclick="location.href='index.html'"
+    >
+      Zur Übersicht
+    </button>
+  </div>
+`;
 
-  document.getElementById("app").innerHTML =
-    html;
-}
-
+document.getElementById("app").innerHTML = html;
 
 function anwendenStatistikZeitraum() {
   const vonInput =
