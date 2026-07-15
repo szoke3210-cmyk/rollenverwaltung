@@ -94,40 +94,56 @@ async function showStatistik() {
 
   let html = `
     <div class="box">
-      <h2>Statistik</h2>
+      <h2>📊 Statistik</h2>
 
-      <label for="statistikVon">
-        Von
-      </label>
+      <div class="statistik-filter-grid">
 
-      <input
-        id="statistikVon"
-        type="date"
-        value="${gespeichertesVon}"
-      >
+        <div>
+          <label for="statistikVon">
+            Von
+          </label>
 
-      <label for="statistikBis">
-        Bis
-      </label>
+          <input
+            id="statistikVon"
+            type="date"
+            value="${gespeichertesVon}"
+          >
+        </div>
 
-      <input
-        id="statistikBis"
-        type="date"
-        value="${gespeichertesBis}"
-      >
+        <div>
+          <label for="statistikBis">
+            Bis
+          </label>
 
-      <button onclick="anwendenStatistikZeitraum()">
-        Zeitraum anwenden
-      </button>
+          <input
+            id="statistikBis"
+            type="date"
+            value="${gespeichertesBis}"
+          >
+        </div>
 
-      <button onclick="resetStatistikZeitraum()">
-        Zeitraum zurücksetzen
-      </button>
+     <div class="button-row">
+  <button
+    class="green"
+    onclick="anwendenStatistikZeitraum()"
+  >
+    ✓ Zeitraum anwenden
+  </button>
 
-      <button onclick="downloadStatistikCSV()">
-        📊 Excel Export
-      </button>
-    </div>
+  <button
+    class="secondary"
+    onclick="resetStatistikZeitraum()"
+  >
+    ↻ Zurücksetzen
+  </button>
+
+  <button
+    class="excel"
+    onclick="downloadStatistikCSV()"
+  >
+    📊 Excel Export
+  </button>
+</div>
   `;
 
   const monate =
