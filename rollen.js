@@ -6,10 +6,32 @@ async function showList() {
   }
 
   let rollen = await api(query);
-  if (!isAdmin) {
+
+const statusFilter =
+  sessionStorage.getItem("statusFilter") || "aktiv";
+
+if (statusFilter === "aktiv") {
   rollen = rollen.filter(r =>
     r.status === "Im Lager" ||
     r.status === "Electrotherm" ||
+    r.status === "Nicht freigegeben"
+  );
+}
+
+if (statusFilter === "lager") {
+  rollen = rollen.filter(r =>
+    r.status === "Im Lager"
+  );
+}
+
+if (statusFilter === "electrotherm") {
+  rollen = rollen.filter(r =>
+    r.status === "Electrotherm"
+  );
+}
+
+if (statusFilter === "nichtfreigegeben") {
+  rollen = rollen.filter(r =>
     r.status === "Nicht freigegeben"
   );
 }
@@ -159,9 +181,42 @@ if (!typFilter && isAdmin) {
 html += `
   <div class="box">
     <h2>${typFilter ? "Rollen von Typ " + typFilter : "Alle Rollen"}</h2>
-    <input id="search" placeholder="Suchen..." onkeyup="filterTable()">
-  </div>
 
+    <label>Status auswählen</label>
+
+    <select id="statusFilter" onchange="changeStatusFilter()">
+      <option value="aktiv" ${
+        statusFilter === "aktiv" ? "selected" : ""
+      }>
+        Aktiv
+      </option>
+
+      <option value="lager" ${
+        statusFilter === "lager" ? "selected" : ""
+      }>
+        Im Lager
+      </option>
+
+      <option value="electrotherm" ${
+        statusFilter === "electrotherm" ? "selected" : ""
+      }>
+        Electrotherm
+      </option>
+
+      <option value="nichtfreigegeben" ${
+        statusFilter === "nichtfreigegeben" ? "selected" : ""
+      }>
+        Nicht freigegeben
+      </option>
+    </select>
+
+    <input
+      id="search"
+      placeholder="Suchen..."
+      onkeyup="filterTable()"
+    >
+  </div>
+  
   ${isAdmin ? `
   <button onclick="location.href='?page=auswahl'">
     Rolle bearbeiten
@@ -205,6 +260,19 @@ document.getElementById("app").innerHTML = html;
 
 }
 
+
+function changeStatusFilter() {
+  const select = document.getElementById("statusFilter");
+
+  if (!select) return;
+
+  sessionStorage.setItem(
+    "statusFilter",
+    select.value
+  );
+
+  showList();
+}
 
 function filterTable() {
   const input = document.getElementById("search").value.toLowerCase();
