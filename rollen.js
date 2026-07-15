@@ -8,16 +8,32 @@ async function showList() {
   let rollen = await api(query);
 
 const statusFilter =
-  sessionStorage.getItem("statusFilter") || "aktiv";
+  sessionStorage.getItem("statusFilter") || "alle";
 
-if (statusFilter === "aktiv") {
-  rollen = rollen.filter(r =>
-    r.status === "Im Lager" ||
-    r.status === "Electrotherm" ||
-    r.status === "Nicht freigegeben"
-  );
+if (statusFilter === "alle") {
+
+  if (isAdmin) {
+
+    // Admin lát mindent
+
+  } else {
+
+    rollen = rollen.filter(r =>
+      r.status === "Im Lager" ||
+      r.status === "Electrotherm" ||
+      r.status === "Nicht freigegeben"
+    );
+
+  }
+
 }
 
+  if (statusFilter === "verbraucht") {
+  rollen = rollen.filter(r =>
+    r.status === "Verbraucht"
+  );
+}
+  
 if (statusFilter === "lager") {
   rollen = rollen.filter(r =>
     r.status === "Im Lager"
@@ -185,30 +201,40 @@ html += `
     <label>Status auswählen</label>
 
     <select id="statusFilter" onchange="changeStatusFilter()">
-      <option value="aktiv" ${
-        statusFilter === "aktiv" ? "selected" : ""
-      }>
-        Aktiv
-      </option>
 
-      <option value="lager" ${
-        statusFilter === "lager" ? "selected" : ""
-      }>
-        Im Lager
-      </option>
+  <option value="alle" ${
+    statusFilter === "alle" ? "selected" : ""
+  }>
+    Alle
+  </option>
 
-      <option value="electrotherm" ${
-        statusFilter === "electrotherm" ? "selected" : ""
-      }>
-        Electrotherm
-      </option>
+  <option value="lager" ${
+    statusFilter === "lager" ? "selected" : ""
+  }>
+    Im Lager
+  </option>
 
-      <option value="nichtfreigegeben" ${
-        statusFilter === "nichtfreigegeben" ? "selected" : ""
-      }>
-        Nicht freigegeben
-      </option>
-    </select>
+  <option value="electrotherm" ${
+    statusFilter === "electrotherm" ? "selected" : ""
+  }>
+    Electrotherm
+  </option>
+
+  <option value="nichtfreigegeben" ${
+    statusFilter === "nichtfreigegeben" ? "selected" : ""
+  }>
+    Nicht freigegeben
+  </option>
+
+  ${isAdmin ? `
+    <option value="verbraucht" ${
+      statusFilter === "verbraucht" ? "selected" : ""
+    }>
+      Verbraucht
+    </option>
+  ` : ""}
+
+</select>
 
     <input
       id="search"
