@@ -1030,202 +1030,303 @@ document.getElementById("app").innerHTML = html;
   
 async function showDetail() {
   const daten = await api(
-  "rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*"
-);
+    "rollen?kennung=eq." +
+    encodeURIComponent(kennung) +
+    "&select=*"
+  );
 
-if (!daten.length) {
-  document.getElementById("app").innerHTML =
-    "<h2>Rolle nicht gefunden</h2>";
-  return;
-}
+  if (!daten.length) {
+    document.getElementById("app").innerHTML =
+      "<h2>Rolle nicht gefunden</h2>";
+    return;
+  }
 
-const r = daten[0];
+  const r = daten[0];
 
-const qrBemerkungen = await loadQrBemerkungen(r.id);
-  const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
-  const historie = await api("historie?rollen_id=eq." + r.id + "&select=*&order=datum.desc");
-const kunden = await api("kunden?select=*&order=name.asc");
-let kundenOptions = kunden.map(k => `<option value="${k.name}">${k.name}</option>`).join("");
-  
+  const qrBemerkungen = await loadQrBemerkungen(r.id);
+
+  const verlust =
+    Number(r.urspruengliche_laenge) -
+    Number(r.aktuelle_laenge);
+
+  const historie = await api(
+    "historie?rollen_id=eq." +
+    r.id +
+    "&select=*&order=datum.desc"
+  );
+
+  const kunden = await api(
+    "kunden?select=*&order=name.asc"
+  );
+
+  const kundenOptions = kunden
+    .map(k => `
+      <option value="${k.name}">
+        ${k.name}
+      </option>
+    `)
+    .join("");
+
   let html = `
-  <div class="box">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+    <div class="box">
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:20px;
+          flex-wrap:wrap;
+        "
+      >
+        <div style="flex:1;min-width:250px;">
+          <h2>${r.kennung}</h2>
 
-      <div style="flex:1;min-width:250px;">
-        <h2>${r.kennung}</h2>
+          <p><b>Typ:</b> ${r.typ || ""}</p>
 
-        <p><b>Typ:</b> ${r.typ}</p>
-        <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
-        <p><b>Ursprüngliche Länge:</b> ${r.urspruengliche_laenge} m</p>
-        <p><b>Gesamtverlust:</b> ${verlust} m</p>
-        <p><b>Status:</b> ${statusBadge(r.status)}</p>
+          <p>
+            <b>Aktuelle Länge:</b>
+            ${r.aktuelle_laenge || 0} m
+          </p>
+
+          <p>
+            <b>Ursprüngliche Länge:</b>
+            ${r.urspruengliche_laenge || 0} m
+          </p>
+
+          <p>
+            <b>Gesamtverlust:</b>
+            ${verlust} m
+          </p>
+
+          <p>
+            <b>Status:</b>
+            ${statusBadge(r.status)}
+          </p>
+        </div>
+
+        <div style="text-align:center;">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
+            style="max-width:220px;"
+            alt="QR-Code"
+          >
+
+          <br>
+
+          <button
+            onclick="downloadQRMitFarben(
+              '${r.kennung}',
+              '${r.typ}',
+              '${qrUrl(r.kennung)}'
+            )"
+            style="margin-top:10px;"
+          >
+            QR-Code herunterladen
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  html += `
+    <div class="box">
+      <h3>Interne Bemerkung</h3>
+
+      <textarea
+        id="bemerkungEdit"
+        placeholder="Interne Bemerkung eingeben..."
+      >${r.bemerkung || ""}</textarea>
+
+      <button onclick="saveInterneBemerkung(${r.id})">
+        Interne Bemerkung speichern
+      </button>
+
+      <button
+        class="red"
+        onclick="markRolleVerbraucht(${r.id})"
+      >
+        Als verbraucht markieren
+      </button>
+
+      ${isAdmin && r.status === "Nicht freigegeben" ? `
+        <button
+          class="green"
+          onclick="freigeben(${r.id})"
+        >
+          ✅ Freigeben
+        </button>
+      ` : ""}
+
+      ${isAdmin ? `
+        <button
+          onclick="deleteRolle(${r.id})"
+          style="
+            background:#dc3545;
+            color:white;
+            margin-left:10px;
+          "
+        >
+          Rolle löschen
+        </button>
+      ` : ""}
+    </div>
+  `;
+
+  html += `
+    <div class="box">
+      <h3>QR-Bemerkungen</h3>
+
+      <div class="qr-bemerkung-liste">
+        ${renderQrBemerkungenListe(
+          qrBemerkungen,
+          isAdmin
+        )}
       </div>
 
-           <div style="text-align:center;">
-  <img
-    src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrUrl(r.kennung))}"
-    style="max-width:220px;"
-  >
-  <br>
+      <label>Neue QR-Bemerkung</label>
 
-  <button
-    onclick="downloadQRMitFarben('${r.kennung}', '${r.typ}', '${qrUrl(r.kennung)}')"
-    style="margin-top:10px;"
-  >
-    QR-Code herunterladen
-  </button>
-</div>
+      <textarea
+        id="publicBemerkung"
+        placeholder="Neue Bemerkung eingeben..."
+      ></textarea>
 
+      <button onclick="savePublicBemerkung(${r.id})">
+        Bemerkung hinzufügen
+      </button>
     </div>
-  </div>
-`;
+  `;
 
-html += `
-<div class="box">
-  <label>Interne Bemerkung</label>
-  <textarea id="bemerkungEdit">${r.bemerkung || ""}</textarea>
+  if (r.status === "Im Lager") {
+    html += `
+      <div class="box">
+        <h3>Zu Electrotherm senden</h3>
 
-  <br><br>
+        <p>
+          <b>Aktuelle Länge:</b>
+          ${r.aktuelle_laenge} m
+        </p>
 
-  <label>QR Bemerkung</label>
-  <textarea id="qr_bemerkung">${r.qr_bemerkung || ""}</textarea>
+        <label>Auftrag / Kunde</label>
 
-  ${r.qr_bemerkung_datum ? `
-    <p style="color:#666;font-size:13px;margin-top:5px;">
-      Letzte Änderung:
-      ${new Date(r.qr_bemerkung_datum).toLocaleString("de-DE")}
-    </p>
-  ` : ""}
+        <select
+          id="auftragSelect"
+          onchange="kundeWechsel()"
+        >
+          <option value="">
+            Kunde auswählen...
+          </option>
 
-  <button onclick="saveBemerkung(${r.id})">
-    Bemerkungen speichern
-  </button>
+          ${kundenOptions}
 
-  <button class="red" onclick="markRolleVerbraucht(${r.id})">
-    Als verbraucht markieren
-  </button>
+          <option value="__neu">
+            + Neuer Kunde
+          </option>
+        </select>
 
-  ${isAdmin && r.status === "Nicht freigegeben" ? `
-    <button class="green" onclick="freigeben(${r.id})">
-      ✅ Freigeben
+        <input
+          id="auftragNeu"
+          placeholder="Neuer Kunde"
+          style="display:none;"
+        >
+
+        <button
+          class="orange"
+          onclick="zuElectrotherm(${r.id})"
+        >
+          Zu Electrotherm senden
+        </button>
+      </div>
+    `;
+  }
+
+  if (r.status === "Electrotherm") {
+    html += `
+      <div class="box">
+        <h3>Von Electrotherm zurück</h3>
+
+        <p>
+          <b>Aktuelle Länge:</b>
+          ${r.aktuelle_laenge} m
+        </p>
+
+        <p>
+          <b>Aktueller Kunde:</b>
+          ${r.auftrag || "-"}
+        </p>
+
+        <label>
+          Verbrauch / Verlust in Meter
+        </label>
+
+        <input
+          id="verbrauch"
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Verbrauch eingeben"
+        >
+
+        <input
+          type="hidden"
+          id="auftragSelect"
+          value="${r.auftrag || ""}"
+        >
+
+        <input
+          type="hidden"
+          id="auftragNeu"
+          value=""
+        >
+
+        <button
+          class="green"
+          onclick="zurueck(${r.id})"
+        >
+          Als zurückgekommen markieren
+        </button>
+      </div>
+    `;
+  }
+
+  if (r.status === "Nicht freigegeben") {
+    html += `
+      <div class="box">
+        <h3>
+          Status: ${statusBadge(r.status)}
+        </h3>
+
+        <p>
+          Diese Rolle ist noch nicht freigegeben
+          und kann nicht zu Electrotherm gesendet
+          werden.
+        </p>
+      </div>
+    `;
+  }
+
+  if (r.status === "Verbraucht") {
+    html += `
+      <div class="box">
+        <h3>
+          Status: ${statusBadge(r.status)}
+        </h3>
+
+        <p>
+          Diese Rolle ist verbraucht und archiviert.
+        </p>
+      </div>
+    `;
+  }
+
+  html += `
+    <button onclick="location.href='index.html'">
+      Zur Übersicht
     </button>
-  ` : ""}
+  `;
 
-  ${isAdmin ? `
-    <button
-      onclick="deleteRolle(${r.id})"
-      style="background:#dc3545;color:white;margin-left:10px;"
-    >
-      Rolle löschen
-    </button>
-  ` : ""}
-</div>
-`;
+  document.getElementById("app").innerHTML = html;
+}
   
-if (r.status === "Im Lager") {
-  html += `
-    <div class="box">
-      <h3>Zu Electrotherm senden</h3>
-
-      <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
-
-      <label>Auftrag / Kunde</label>
-
-      <select id="auftragSelect" onchange="kundeWechsel()">
-        <option value="">Kunde auswählen...</option>
-        ${kundenOptions}
-        <option value="__neu">+ Neuer Kunde</option>
-      </select>
-
-      <input
-        id="auftragNeu"
-        placeholder="Neuer Kunde"
-        style="display:none"
-      >
-
-      <button class="orange" onclick="zuElectrotherm(${r.id})">
-        Zu Electrotherm senden
-      </button>
-    </div>
-  `;
-}
-
-if (r.status === "Electrotherm") {
-  html += `
-    <div class="box">
-      <h3>Von Electrotherm zurück</h3>
-
-      <p><b>Aktuelle Länge:</b> ${r.aktuelle_laenge} m</p>
-
-      <p>
-        <b>Aktueller Kunde:</b>
-        ${r.auftrag || "-"}
-      </p>
-
-      <label>Verbrauch / Verlust in Meter</label>
-
-      <input
-        id="verbrauch"
-        type="number"
-        step="0.01"
-        min="0"
-        placeholder="Verbrauch eingeben"
-      >
-
-      <input
-        type="hidden"
-        id="auftragSelect"
-        value="${r.auftrag || ""}"
-      >
-
-      <input
-        type="hidden"
-        id="auftragNeu"
-        value=""
-      >
-
-      <button class="green" onclick="zurueck(${r.id})">
-        Als zurückgekommen markieren
-      </button>
-    </div>
-  `;
-}
-
-if (r.status === "Nicht freigegeben") {
-  html += `
-    <div class="box">
-      <h3>Status: ${statusBadge(r.status)}</h3>
-
-      <p>
-        Diese Rolle ist noch nicht freigegeben und kann nicht zu
-        Electrotherm gesendet werden.
-      </p>
-    </div>
-  `;
-}
-
-if (r.status === "Verbraucht") {
-  html += `
-    <div class="box">
-      <h3>Status: ${statusBadge(r.status)}</h3>
-
-      <p>
-        Diese Rolle ist verbraucht und archiviert.
-      </p>
-    </div>
-  `;
-}
-
-html += `
-  </div>
-  <button onclick="location.href='index.html'">
-    Zur Übersicht
-  </button>
-`;
-
-document.getElementById("app").innerHTML = html;
-}
-
 async function speichern(id) {
   const daten = await api("rollen?id=eq." + id + "&select=*");
   if (!daten.length) return;
