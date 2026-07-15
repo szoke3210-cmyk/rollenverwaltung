@@ -1068,13 +1068,25 @@ tr:not(:first-child):hover {
   }
 }
 
+.top-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 10px;
+}
+
 .extra-urlaub-button {
   background: #facc15;
   color: #111827;
-  font-weight: bold;
   border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
 }
 
