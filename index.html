@@ -1460,20 +1460,31 @@ async function zurueck(id) {
   await speichern(id);
 }
 async function saveBemerkung(id) {
-  const bemerkung = document.getElementById("bemerkungEdit").value;
-  const qr_bemerkung = document.getElementById("qr_bemerkung").value;
+  const bemerkungInput = document.getElementById("bemerkungEdit");
+
+  if (!bemerkungInput) {
+    alert("Interne Bemerkung nicht gefunden.");
+    return;
+  }
+
+  const bemerkung = bemerkungInput.value.trim();
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
-  bemerkung: bemerkung,
-  qr_bemerkung: qr_bemerkung,
-  qr_bemerkung_datum: new Date().toISOString()
-})
+      bemerkung: bemerkung
+    })
   });
 
-  alert("Bemerkungen gespeichert");
-  location.reload();
+  await logAktion(
+    "Interne Bemerkung geändert",
+    kennung || "",
+    bemerkung
+  );
+
+  alert("Interne Bemerkung gespeichert");
+
+  await showDetail();
 }
   
 async function deleteRolle(id) {
