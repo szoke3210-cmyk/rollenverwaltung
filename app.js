@@ -9,7 +9,7 @@ let currentUserRole = "user";
 let currentUser = null;
   
 async function freigeben(id) {
-  if (!confirm("Diese Rolle freigeben?")) return;
+  if (!confirm("Diese Rolle freigefben?")) return;
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
@@ -289,25 +289,48 @@ async function downloadBackup(button) {
   }
 }
 
-async function logAktion(aktion, rolle = "", details = "") {
+async function logAktion(
+  aktion,
+  rolle = "",
+  details = "",
+  benutzerOverride = null
+) {
   try {
-    const {
-      data: { user }
-    } = await supabaseClient.auth.getUser();
+    const benutzer =
+      benutzerOverride ||
+      currentUser?.email ||
+      "Öffentlicher QR-Zugriff";
 
-    const { error } = await supabaseClient
-      .from("aktivitaet")
-      .insert([{
-        benutzer: user?.email || "Unbekannt",
-        aktion,
-        rolle,
-        details
-      }]);
+    const token = accessToken || SUPABASE_KEY;
 
-    if (error) console.error(error);
+    const res = await fetch(
+      SUPABASE_URL + "/rest/v1/aktivitaet",
+      {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify({
+          datum: new Date().toISOString(),
+          benutzer: benutzer,
+          aktion: aktion,
+          rolle: rolle,
+          details: details
+        })
+      }
+    );
 
-  } catch (e) {
-    console.error(e);
+    if (!res.ok) {
+      console.error(
+        "Aktivitätsprotokoll Fehler:",
+        await res.text()
+      );
+    }
+  } catch (error) {
+    console.error("Aktivitätsprotokoll Fehler:", error);
   }
 }
 
