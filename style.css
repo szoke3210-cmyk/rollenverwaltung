@@ -234,3 +234,19 @@ body {
   max-width: 60vw;
   height: auto;
 }
+
+.header-logo-link {
+  display: inline-flex;
+  width: auto;
+  max-width: max-content;
+  align-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.header-logo {
+  display: block;
+  width: 280px;
+  max-width: 60vw;
+  height: auto;
+}
