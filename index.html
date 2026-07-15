@@ -7,7 +7,7 @@
   <title>Rollenverwaltung</title>
 
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,19 +28,19 @@
 </head>
 <body>
   <header class="main-header">
-   <a href="./index.html" class="header-title">
-  <img
-  src="SL-LO-CO.jpg?v=1"
-  alt="Saveline"
-  class="header-logo"
-  style="cursor:pointer"
-  onclick="location.href='index.html'"
->
-    <div class="header-right">
-      <div id="userInfo"></div>
-      <div id="adminInfo"></div>
-    </div>
-  </header>
+  <a href="./index.html" class="header-logo-link" aria-label="Zur Übersicht">
+    <img
+      src="SL-LO-CO.jpg?v=2"
+      alt="Saveline"
+      class="header-logo"
+    >
+  </a>
+
+  <div class="header-right">
+    <div id="userInfo"></div>
+    <div id="adminInfo"></div>
+  </div>
+</header>
 
   <main class="container">
     <div id="app">Laden...</div>
