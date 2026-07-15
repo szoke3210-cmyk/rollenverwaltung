@@ -95,26 +95,28 @@ if (statusFilter === "nichtfreigegeben") {
   
 if (!typFilter) {
   html += `
-    <div class="box top-buttons">
+    <div class="top-buttons">
 
-      <div class="left-buttons">
-        <button onclick="location.href='?page=statistik'">
-          📊 Statistik
-        </button>
+  <div class="box left-buttons-box">
+    <button onclick="location.href='?page=statistik'">
+      📊 Statistik
+    </button>
 
-        <button onclick="location.href='?page=scanner'">
-          QR-Code scannen
-        </button>
-      </div>
+    <button onclick="location.href='?page=scanner'">
+      QR-Code scannen
+    </button>
+  </div>
 
-      <button
-        class="extra-urlaub-button"
-        onclick="window.open('extra-urlaub.jpg', '_blank')"
-      >
-        Extra Urlaub
-      </button>
+  <div class="box extra-urlaub-box">
+    <button
+      class="extra-urlaub-button"
+      onclick="window.open('extra-urlaub.jpg', '_blank')"
+    >
+      Extra Urlaub
+    </button>
+  </div>
 
-    </div>
+</div>
   `;
 }
   
