@@ -101,6 +101,50 @@ async function logoutUser() {
 }
 
 
+async function saveInterneBemerkung(id) {
+  const input = document.getElementById("bemerkungEdit");
+
+  if (!input) {
+    alert("Bemerkungsfeld nicht gefunden.");
+    return;
+  }
+
+  const bemerkung = input.value.trim();
+
+  const res = await fetch(
+    SUPABASE_URL + "/rest/v1/rollen?id=eq." + id,
+    {
+      method: "PATCH",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({
+        bemerkung: bemerkung
+      })
+    }
+  );
+
+  if (!res.ok) {
+    const fehler = await res.text();
+    console.error("Bemerkung speichern Fehler:", fehler);
+    alert("Bemerkung konnte nicht gespeichert werden.");
+    return;
+  }
+
+ await logAktion(
+  "Interne Bemerkung geändert",
+  kennung || "",
+  bemerkung
+);
+
+  alert("Interne Bemerkung gespeichert.");
+
+  await showDetail();
+}
+
 async function loadUserRole() {
   if (!currentUser?.id || !accessToken) {
     isAdmin = false;
