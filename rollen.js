@@ -560,11 +560,14 @@ async function showDetail() {
     </div>
   `;
   
-${isAdmin ? `
-  <button onclick="location.href='?page=auswahl&id=${r.id}'">
-    ✏️ Rolle bearbeiten
-  </button>
-` : ""}
+html += `
+  ${isAdmin ? `
+    <button onclick="location.href='?page=auswahl&id=${r.id}'">
+      ✏️ Rolle bearbeiten
+    </button>
+  ` : ""}
+`;
+  
   html += `
     <div class="box">
       <h3>QR-Bemerkungen</h3>
@@ -1070,24 +1073,26 @@ if (filter === "archiv") {
     `;
   });
 
-  html += `
+    html += `
       </select>
 
       <div id="rolleEditor"></div>
 
       <button onclick="location.href='index.html'">
-      🔚 Zur Übersicht
+        🔚 Zur Übersicht
       </button>
     </div>
   `;
 
   document.getElementById("app").innerHTML = html;
-if (editId) {
-  const select = document.getElementById("rolleSelect");
 
-  if (select) {
-    select.value = editId;
-    await loadRolleEditor();
+  if (editId) {
+    const select = document.getElementById("rolleSelect");
+
+    if (select) {
+      select.value = editId;
+      await loadRolleEditor();
+    }
   }
 }
 
