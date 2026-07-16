@@ -103,12 +103,12 @@ if (!typFilter) {
         </button>
 
         <button onclick="location.href='?page=scanner'">
-          QR-Code scannen
+          📷 QR-Code scannen
         </button>
 
         ${isAdmin ? `
           <button onclick="location.href='?page=kunden'">
-            Kunde bearbeiten
+            👤 Kunde bearbeiten
           </button>
 
           <button onclick="location.href='?page=auswahl'">
@@ -121,7 +121,7 @@ ${isAdmin ? `
 </button>
 ` : ""}
           <button onclick="location.href='?page=aktivitaet'">
-            Aktivität
+            📋 Aktivität
           </button>
         ` : ""}
       </div>
@@ -131,7 +131,7 @@ ${isAdmin ? `
           class="extra-urlaub-button"
           onclick="window.open('extra-urlaub.jpg', '_blank')"
         >
-          Extra Urlaub
+          🌴 Extra Urlaub
         </button>
       </div>
 
@@ -145,7 +145,7 @@ html += `
 
     ${!typFilter && isAdmin ? `
       <button onclick="location.href='?page=typen'">
-        Typ bearbeiten
+        🏷️ Typ bearbeiten
       </button>
     ` : ""}
 
@@ -269,7 +269,7 @@ html += `
   
   ${isAdmin ? `
   <button onclick="location.href='?page=auswahl'">
-    Rolle bearbeiten
+    🛠️ Rolle bearbeiten
   </button>
 
   <br><br>
