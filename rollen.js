@@ -559,7 +559,12 @@ async function showDetail() {
       ` : ""}
     </div>
   `;
-
+  
+${isAdmin ? `
+  <button onclick="location.href='?page=auswahl&id=${r.id}'">
+    ✏️ Rolle bearbeiten
+  </button>
+` : ""}
   html += `
     <div class="box">
       <h3>QR-Bemerkungen</h3>
