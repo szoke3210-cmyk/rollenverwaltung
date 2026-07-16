@@ -114,7 +114,12 @@ if (!typFilter) {
           <button onclick="location.href='?page=auswahl'">
             Rollen bearbeiten
           </button>
-
+          
+${isAdmin ? `
+<button onclick="backupHerunterladen()">
+  💾 Backup herunterladen
+</button>
+` : ""}
           <button onclick="location.href='?page=aktivitaet'">
             Aktivität
           </button>
