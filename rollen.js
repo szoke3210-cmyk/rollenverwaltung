@@ -112,7 +112,7 @@ if (!typFilter) {
           </button>
 
           <button onclick="location.href='?page=auswahl'">
-            Rollen bearbeiten
+           🛠️ Rollen bearbeiten
           </button>
           
 ${isAdmin ? `
@@ -213,7 +213,7 @@ if (!typFilter && isAdmin) {
   <option value="Verbraucht">Verbraucht</option>
 </select>
     <textarea id="newBemerkung" placeholder="Bemerkung"></textarea>
-    <button class="green" onclick="neueRolle()">Neue Rolle speichern</button>
+    <button class="green" onclick="neueRolle()">➕ Neue Rolle speichern</button>
   </div>
   `;
 }
@@ -523,7 +523,7 @@ async function showDetail() {
             )"
             style="margin-top:10px;"
           >
-            QR-Code herunterladen
+           ⬇️ QR-Code herunterladen
           </button>
         </div>
       </div>
@@ -541,7 +541,7 @@ async function showDetail() {
       >${r.bemerkung || ""}</textarea>
 
       <button onclick="saveInterneBemerkung(${r.id})">
-        Interne Bemerkung speichern
+       📝 Interne Bemerkung speichern
       </button>
     ` : `
       <div style="
@@ -559,7 +559,7 @@ async function showDetail() {
     class="red"
     onclick="markRolleVerbraucht(${r.id})"
   >
-    Als verbraucht markieren
+   🗑️ Als verbraucht markieren
   </button>
 ` : ""}
 
@@ -581,7 +581,7 @@ async function showDetail() {
             margin-left:10px;
           "
         >
-          Rolle löschen
+         ❌ Rolle löschen
         </button>
       ` : ""}
     </div>
@@ -606,7 +606,7 @@ async function showDetail() {
       ></textarea>
 
       <button onclick="savePublicBemerkung(${r.id})">
-        Bemerkung hinzufügen
+       ✏️ Bemerkung hinzufügen
       </button>
     </div>
   `;
@@ -648,7 +648,7 @@ async function showDetail() {
           class="orange"
           onclick="zuElectrotherm(${r.id})"
         >
-          Zu Electrotherm senden
+         ⬅️🚚 Zu Electrotherm senden
         </button>
       </div>
     `;
@@ -697,7 +697,7 @@ async function showDetail() {
           class="green"
           onclick="zurueck(${r.id})"
         >
-          Als zurückgekommen markieren
+         ↩️🚚 Als zurückgekommen markieren
         </button>
       </div>
     `;
@@ -735,7 +735,7 @@ async function showDetail() {
 
   html += `
     <button onclick="location.href='index.html'">
-      Zur Übersicht
+     🏠 Zur Übersicht
     </button>
   `;
 
@@ -1002,7 +1002,7 @@ if (filter === "archiv") {
       <div id="rolleEditor"></div>
 
       <button onclick="location.href='index.html'">
-        Zur Übersicht
+      🔚 Zur Übersicht
       </button>
     </div>
   `;
@@ -1061,23 +1061,23 @@ async function loadRolleEditor() {
       <input id="editAuftrag" value="${r.auftrag || ""}">
 
             <button onclick="saveRolleEditor(${r.id})">
-        Änderungen speichern
+       💾 Änderungen speichern
       </button>
 
       ${isAdmin ? `
       ${r.status === "Nicht freigegeben" ? `
   <button onclick="rolleFreigeben(${r.id})" style="background:#28a745;color:white;margin-left:10px;">
-    Freigeben
+   🔓 Freigeben
   </button>
 ` : ""}
         ${r.status !== "Verbraucht" ? `
   <button class="red" onclick="markRolleVerbraucht(${r.id})">
-    Als verbraucht markieren
+  🗑️ Als verbraucht markieren
   </button>
 ` : ""}
 
         <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
-          Rolle löschen
+         ❌ Rolle löschen
         </button>
       ` : ""}
     </div>
