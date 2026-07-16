@@ -389,44 +389,17 @@ async function neueRolle() {
 
 
 async function markRolleVerbraucht(id) {
-  if (!confirm("Diese Rolle als verbraucht markieren?")) return;
-
-  const daten = await api("rollen?id=eq." + id + "&select=*");
-
-  if (!daten.length) {
-    alert("Rolle nicht gefunden.");
+  if (!confirm("Diese Rolle als verbraucht markieren?")) {
     return;
   }
 
-  const rolle = daten[0];
+  window.forceStatus = "Verbraucht";
 
-  await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      status: "Verbraucht"
-    })
-  });
-
-  await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    datum: new Date().toISOString(),
-    aktion: "Verbraucht",
-    laenge: rolle.aktuelle_laenge,
-    verbrauch: 0,
-    bemerkung: "Rolle wurde archiviert"
-  })
-});
-
-await logAktion(
-  "Verbraucht",
-  rolle.kennung,
-  `Typ: ${rolle.typ}, Restlänge: ${rolle.aktuelle_laenge} m`
-);
-
-alert("Rolle wurde als verbraucht markiert.");
-showAuswahl();
+  try {
+    await speichern(id);
+  } finally {
+    window.forceStatus = null;
+  }
 }
 
 
@@ -750,23 +723,81 @@ async function speichern(id) {
   const r = daten[0];
 
   const verbrauchInput = document.getElementById("verbrauch");
-  const verbrauchText = verbrauchInput ? verbrauchInput.value.trim() : "";
-const verbrauch = verbrauchText === "" ? null : Number(verbrauchText);
-  
-  let status = window.forceStatus || r.status;
-  
-  const auftragSelect = document.getElementById("auftragSelect").value;
-  const auftragNeu = document.getElementById("auftragNeu").value.trim();
+  const verbrauchText = verbrauchInput
+    ? verbrauchInput.value.trim()
+    : "";
+
+  const verbrauch =
+    verbrauchText === ""
+      ? null
+      : Number(verbrauchText);
+
+  const status = window.forceStatus || r.status;
+
+  const auftragSelectElement =
+    document.getElementById("auftragSelect");
+
+  const auftragNeuElement =
+    document.getElementById("auftragNeu");
+
+  const auftragSelect = auftragSelectElement
+    ? auftragSelectElement.value
+    : (r.auftrag || "");
+
+  const auftragNeu = auftragNeuElement
+    ? auftragNeuElement.value.trim()
+    : "";
 
   const auftrag =
     auftragSelect === "__neu"
       ? auftragNeu
       : auftragSelect;
 
+  // Verbrauch darf keine ungültige oder negative Zahl sein
+  if (
+    verbrauch !== null &&
+    (!Number.isFinite(verbrauch) || verbrauch < 0)
+  ) {
+    alert("Bitte einen gültigen Verbrauch eingeben.");
+    return;
+  }
+
+  /*
+   * Wenn die Rolle bei Electrotherm ist und entweder
+   * zurückkommt oder direkt als verbraucht markiert wird,
+   * muss ein Verbrauch eingetragen werden.
+   *
+   * Auch 0 ist erlaubt, muss aber ausdrücklich eingegeben werden.
+   */
+  if (
+    r.status === "Electrotherm" &&
+    (status === "Im Lager" || status === "Verbraucht") &&
+    verbrauchText === ""
+  ) {
+    alert(
+      "Bitte Verbrauch eintragen. Wenn nichts verbraucht wurde, 0 eingeben."
+    );
+    return;
+  }
+
+  if (
+    verbrauch !== null &&
+    verbrauch > Number(r.aktuelle_laenge)
+  ) {
+    alert(
+      "Der Verbrauch darf nicht größer als die aktuelle Länge sein."
+    );
+    return;
+  }
+
+  // Neue Länge nur einmal berechnen
   let neueLaenge = Number(r.aktuelle_laenge);
 
-  if (verbrauch > 0) {
-    neueLaenge = neueLaenge - verbrauch;
+  if (
+    r.status === "Electrotherm" &&
+    (status === "Im Lager" || status === "Verbraucht")
+  ) {
+    neueLaenge -= verbrauch || 0;
   }
 
   if (neueLaenge < 0) {
@@ -774,47 +805,59 @@ const verbrauch = verbrauchText === "" ? null : Number(verbrauchText);
     return;
   }
 
-  if (status === "Electrotherm" && !auftrag.trim()) {
+  // Beim Senden zu Electrotherm ist ein Kunde/Auftrag erforderlich
+  if (
+    status === "Electrotherm" &&
+    !auftrag.trim()
+  ) {
     alert("Bitte Auftrag / Kunde eingeben.");
     return;
   }
-  
-  if (r.status === "Electrotherm" && status === "Electrotherm" && (r.auftrag || "") !== auftrag) {
-  alert("Diese Rolle ist bereits bei Electrotherm. Erst zurück ins Lager buchen.");
-  return;
-}
 
-  if (status === "Im Lager" && r.status === "Electrotherm" && verbrauchText === "") {
-  alert("Bitte Verbrauch eintragen. Wenn nichts verbraucht wurde, 0 eingeben.");
-  return;
-}
-
-if (verbrauch !== null && verbrauch < 0) {
-  alert("Verbrauch darf nicht negativ sein.");
-  return;
-}
-
-  if (auftragSelect === "__neu" && auftragNeu) {
-  const neuerKunde = await api("kunden", {
-    method: "POST",
-    headers: {
-      "Prefer": "return=representation"
-    },
-    body: JSON.stringify({
-      name: auftragNeu
-    })
-  });
-
-  if (!neuerKunde || neuerKunde.length === 0) {
-    alert("Der neue Kunde konnte nicht gespeichert werden.");
+  // Bereits bei Electrotherm: Auftrag nicht einfach ändern
+  if (
+    r.status === "Electrotherm" &&
+    status === "Electrotherm" &&
+    (r.auftrag || "") !== auftrag
+  ) {
+    alert(
+      "Diese Rolle ist bereits bei Electrotherm. Erst zurück ins Lager buchen."
+    );
     return;
   }
-}
+
+  // Neuen Kunden speichern
+  if (
+    auftragSelect === "__neu" &&
+    auftragNeu
+  ) {
+    const neuerKunde = await api("kunden", {
+      method: "POST",
+      headers: {
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({
+        name: auftragNeu
+      })
+    });
+
+    if (!neuerKunde || neuerKunde.length === 0) {
+      alert(
+        "Der neue Kunde konnte nicht gespeichert werden."
+      );
+      return;
+    }
+  }
+
+  const neuerAuftrag =
+    status === "Electrotherm"
+      ? auftrag
+      : "";
 
   const nichtsGeaendert =
     Number(r.aktuelle_laenge) === Number(neueLaenge) &&
     r.status === status &&
-    (r.auftrag || "") === auftrag;
+    (r.auftrag || "") === neuerAuftrag;
 
   if (nichtsGeaendert) {
     alert("Keine Änderung.");
@@ -826,52 +869,76 @@ if (verbrauch !== null && verbrauch < 0) {
     body: JSON.stringify({
       aktuelle_laenge: neueLaenge,
       status: status,
-      auftrag: status === "Electrotherm" ? auftrag : "",
+      auftrag: neuerAuftrag,
       bemerkung: r.bemerkung || ""
     })
   });
 
   let aktion = "Geändert";
 
-  if (r.status !== status && status === "Electrotherm") {
+  if (
+    r.status !== status &&
+    status === "Electrotherm"
+  ) {
     aktion = "Zu Electrotherm gesendet";
   }
 
-  if (r.status !== status && status === "Im Lager") {
+  if (
+    r.status === "Electrotherm" &&
+    status === "Im Lager"
+  ) {
     aktion = "Von Electrotherm zurück";
   }
 
-  if (auftrag && status === "Electrotherm") {
+  if (
+    r.status === "Electrotherm" &&
+    status === "Verbraucht"
+  ) {
+    aktion = "Als verbraucht markiert";
+  }
+
+  if (
+    auftrag &&
+    status === "Electrotherm"
+  ) {
     aktion += " | Auftrag: " + auftrag;
   }
 
-  if (verbrauch > 0) {
+  if (
+    verbrauch !== null &&
+    r.status === "Electrotherm" &&
+    (status === "Im Lager" || status === "Verbraucht")
+  ) {
     aktion += " | Verbrauch: " + verbrauch + " m";
   }
 
   await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    aktion: aktion,
-    laenge: neueLaenge,
-    bemerkung: auftrag,
-    verbrauch: verbrauch,
-    typ: r.typ,
-    auftrag: auftrag
-  })
-});
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: id,
+      aktion: aktion,
+      laenge: neueLaenge,
+      bemerkung: auftrag,
+      verbrauch: verbrauch,
+      typ: r.typ,
+      auftrag: auftrag
+    })
+  });
 
-await logAktion(
-  aktion,
-  r.kennung,
-  `Typ: ${r.typ}, Kunde/Auftrag: ${auftrag || "-"}, Verbrauch: ${
-    verbrauch ?? 0
-  } m, Neue Länge: ${neueLaenge} m`
-);
+  await logAktion(
+    aktion,
+    r.kennung,
+    `Typ: ${r.typ}, Kunde/Auftrag: ${
+      auftrag || "-"
+    }, Verbrauch: ${
+      verbrauch ?? 0
+    } m, Neue Länge: ${neueLaenge} m`
+  );
 
-alert("Gespeichert");
-location.reload();
+  window.forceStatus = null;
+
+  alert("Gespeichert");
+  location.reload();
 }
 
 
