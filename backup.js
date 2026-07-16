@@ -1,50 +1,42 @@
 async function ladeAlleDatensaetze(tabelle) {
-  const seitenGroesse = 1000;
-  let start = 0;
-  let alleDaten = [];
+  const alleDaten = [];
+  const schritt = 1000;
+  let von = 0;
 
   while (true) {
-    const { data, error } = await supabaseClient
-      .from(tabelle)
-      .select("*")
-      .range(start, start + seitenGroesse - 1);
+    const daten = await api(
+      `${tabelle}?select=*&order=id.asc`,
+      {
+        headers: {
+          Range: `${von}-${von + schritt - 1}`,
+          Prefer: "count=exact"
+        }
+      }
+    );
 
-    if (error) {
+    if (!Array.isArray(daten)) {
       throw new Error(
-        `Fehler beim Laden der Tabelle "${tabelle}": ${error.message}`
+        `Fehler beim Laden der Tabelle: ${tabelle}`
       );
     }
 
-    alleDaten = alleDaten.concat(data || []);
+    alleDaten.push(...daten);
 
-    if (!data || data.length < seitenGroesse) {
+    if (daten.length < schritt) {
       break;
     }
 
-    start += seitenGroesse;
+    von += schritt;
   }
 
   return alleDaten;
 }
 
-
-async function downloadBackup(button) {
-  if (!isAdmin) {
-    alert("Nur Administratoren dürfen ein Backup erstellen.");
-    return;
-  }
-
+async function backupHerunterladen() {
   try {
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Backup wird erstellt...";
-    }
-
-    const [rollen, historie, kunden] = await Promise.all([
-      ladeAlleDatensaetze("rollen"),
-      ladeAlleDatensaetze("historie"),
-      ladeAlleDatensaetze("kunden")
-    ]);
+    const rollen = await ladeAlleDatensaetze("rollen");
+    const historie = await ladeAlleDatensaetze("historie");
+    const kunden = await ladeAlleDatensaetze("kunden");
 
     const backup = {
       erstellt_am: new Date().toISOString(),
@@ -54,7 +46,6 @@ async function downloadBackup(button) {
     };
 
     const json = JSON.stringify(backup, null, 2);
-
     const blob = new Blob([json], {
       type: "application/json;charset=utf-8"
     });
@@ -64,10 +55,10 @@ async function downloadBackup(button) {
 
     const datum = new Date()
       .toISOString()
-      .replace(/[:.]/g, "-");
+      .slice(0, 10);
 
     link.href = url;
-    link.download = `rollenverwaltung_backup_${datum}.json`;
+    link.download = `saveline_backup_${datum}.json`;
 
     document.body.appendChild(link);
     link.click();
@@ -75,28 +66,9 @@ async function downloadBackup(button) {
 
     URL.revokeObjectURL(url);
 
-    await logAktion(
-      "Backup erstellt",
-      "",
-      `Rollen: ${rollen.length}, Historie: ${historie.length}, Kunden: ${kunden.length}`
-    );
-
-    alert(
-      `Backup erfolgreich erstellt.\n\n` +
-      `Rollen: ${rollen.length}\n` +
-      `Historie: ${historie.length}\n` +
-      `Kunden: ${kunden.length}`
-    );
-
+    alert("Backup wurde heruntergeladen.");
   } catch (error) {
-    console.error("Backup-Fehler:", error);
-    alert("Backup konnte nicht erstellt werden:\n" + error.message);
-
-  } finally {
-    if (button) {
-      button.disabled = false;
-      button.textContent = "💾 Backup herunterladen";
-    }
+    console.error("Backup Fehler:", error);
+    alert("Backup konnte nicht erstellt werden.");
   }
 }
-
