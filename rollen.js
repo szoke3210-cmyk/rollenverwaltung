@@ -1029,6 +1029,8 @@ async function rolleFreigeben(id) {
 
 
 async function showAuswahl() {
+  const editId = new URLSearchParams(window.location.search).get("id");
+
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
     const filter = localStorage.getItem("rolleFilter") || "aktiv";
 
@@ -1080,6 +1082,13 @@ if (filter === "archiv") {
   `;
 
   document.getElementById("app").innerHTML = html;
+if (editId) {
+  const select = document.getElementById("rolleSelect");
+
+  if (select) {
+    select.value = editId;
+    await loadRolleEditor();
+  }
 }
 
 
