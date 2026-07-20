@@ -72,7 +72,9 @@ async function showList() {
     };
   }
 
+ if (r.status !== "Verbraucht") {
   typen[r.typ].count++;
+}
   typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
 
   if (r.status === "Im Lager") {
@@ -189,8 +191,7 @@ if (!typFilter) {
       <p>${typen[t].count} Rollen insgesamt</p>
 <p>Im Lager: ${typen[t].lager}</p>
 <p>Nicht freigegeben: ${typen[t].nichtFreigegeben}</p>
-<p>Electrotherm: ${typen[t].electro}</p>
-<p>Verbraucht: ${typen[t].verbraucht}</p>
+<p>Electrotherm: ${typen[t].electro}</p><p>Test notwendig: ${typen[t].testNotwendig}</p><p>Verbraucht: ${typen[t].verbraucht}</p>
   </div>
 </div>
     `;
