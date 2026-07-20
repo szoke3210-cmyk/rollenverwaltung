@@ -12,14 +12,9 @@ async function startApp() {
       return;
     }
 
-    if (navigator.onLine && window.SavelineOffline) {
-      try {
-        await window.SavelineOffline.refreshAllData();
-      } catch (error) {
-        console.warn("Offline-Daten konnten nicht vollständig aktualisiert werden:", error);
-      }
-    }
-
+    // Először mindig jelenjen meg az alkalmazás. A teljes offline másolat
+    // frissítése ezután a háttérben fusson, hogy egy lassú vagy tiltott tábla
+    // ne akadályozza a főoldal betöltését.
     if (page === "statistik") {
       await showStatistik();
     } else if (page === "typen") {
@@ -38,18 +33,21 @@ async function startApp() {
       await showList();
     }
 
+    if (navigator.onLine && window.SavelineOffline) {
+      setTimeout(() => {
+        window.SavelineOffline.refreshAllData({ quiet: false })
+          .catch(error => console.warn("Offline-Daten Aktualisierung fehlgeschlagen:", error));
+      }, 500);
+    }
+
   } catch (error) {
     console.error("Fehler in startApp:", error);
 
-    const offline = !navigator.onLine;
-
     document.getElementById("app").innerHTML = `
       <div class="box">
-        <h2>${offline ? "Offline" : "Fehler beim Laden"}</h2>
-        <p>${offline
-          ? "Die Anwendung wurde offline geöffnet. Für Rollen- und Kundendaten ist in dieser ersten Offline-Stufe noch eine Internetverbindung erforderlich."
-          : escapeHtml(error.message)}</p>
-        ${offline ? `<button type="button" onclick="location.reload()">Erneut versuchen</button>` : ""}
+        <h2>${!navigator.onLine ? "Offline" : "Fehler beim Laden"}</h2>
+        <p>${escapeHtml(error?.message || "Unbekannter Fehler")}</p>
+        <button type="button" onclick="location.reload()">Erneut versuchen</button>
       </div>
     `;
   }

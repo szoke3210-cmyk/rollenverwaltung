@@ -1,91 +1,74 @@
-const CACHE_VERSION = "saveline-shell-v4";
-const RUNTIME_CACHE = "saveline-runtime-v4";
+const CACHE_VERSION = "saveline-shell-v5";
+const RUNTIME_CACHE = "saveline-runtime-v5";
 
 const CORE_ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.json",
-  "./style.css?v=8",
-  "./config.js",
-  "./state.js",
-  "./utils.js",
-  "./api.js?v=4",
-  "./auth.js?v=3",
-  "./aktivitaet.js",
-  "./backup.js",
-  "./qr.js?v=4",
-  "./typen.js",
-  "./statistik.js",
-  "./kunden.js",
-  "./scanner.js",
-  "./rollen.js?v=20260720-1",
-  "./app.js?v=20260720-4",
-  "./offline.js?v=4",
-  "./SL-LO-CO.jpg?v=2",
-  "./saveway-background.png",
-  "./extra-urlaub.jpg",
-  "./icon-192.png",
-  "./icon-512.png"
+  "./", "./index.html", "./manifest.json", "./style.css?v=9",
+  "./config.js", "./state.js", "./utils.js", "./api.js?v=5",
+  "./auth.js?v=3", "./aktivitaet.js", "./backup.js", "./qr.js?v=5",
+  "./typen.js", "./statistik.js", "./kunden.js", "./scanner.js",
+  "./rollen.js?v=20260720-1", "./app.js?v=20260720-5", "./offline.js?v=5",
+  "./SL-LO-CO.jpg?v=2", "./saveway-background.png", "./extra-urlaub.jpg",
+  "./icon-192.png", "./icon-512.png"
 ];
 
-const EXTERNAL_ASSETS = [
-  "https://unpkg.com/html5-qrcode",
-  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-];
-
-self.addEventListener("install", (event) => {
+self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_VERSION);
-
-    // Egy hibás vagy kimaradt fájl se akadályozza meg a Service Worker telepítését.
-    await Promise.allSettled(
-      CORE_ASSETS.map(async (asset) => {
-        const request = new Request(asset, { cache: "reload" });
-        const response = await fetch(request);
-        if (!response.ok) throw new Error(`${asset}: ${response.status}`);
-        await cache.put(request, response);
-      })
-    );
-
-    await Promise.allSettled(
-      EXTERNAL_ASSETS.map(async (asset) => {
-        const response = await fetch(asset, { mode: "cors", cache: "reload" });
-        if (!response.ok) throw new Error(`${asset}: ${response.status}`);
-        await cache.put(asset, response);
-      })
-    );
-
+    await Promise.allSettled(CORE_ASSETS.map(async asset => {
+      const response = await fetch(new Request(asset, { cache: "reload" }));
+      if (response.ok) await cache.put(asset, response.clone());
+    }));
     await self.skipWaiting();
   })());
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keep = new Set([CACHE_VERSION, RUNTIME_CACHE]);
     const names = await caches.keys();
-    await Promise.all(names.filter((name) => !keep.has(name)).map((name) => caches.delete(name)));
+    await Promise.all(names.filter(name => !keep.has(name)).map(name => caches.delete(name)));
     await self.clients.claim();
   })());
 });
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
-
-  // A Supabase adat- és bejelentkezési kérések ne kerüljenek gyorsítótárba.
   if (url.hostname.endsWith("supabase.co")) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirstNavigation(request));
+    event.respondWith(networkFirst(request, true));
     return;
   }
 
-  event.respondWith(cacheFirstWithRefresh(request));
+  // Saját JS/CSS fájloknál online mindig az új verziót próbáljuk először.
+  if (url.origin === self.location.origin && ["script", "style"].includes(request.destination)) {
+    event.respondWith(networkFirst(request, false));
+    return;
+  }
+
+  event.respondWith(cacheFirst(request));
 });
 
-async function networkFirstNavigation(request) {
+async function networkFirst(request, navigation) {
+  try {
+    const response = await fetch(request, { cache: "no-store" });
+    if (response && response.ok) {
+      const cache = await caches.open(RUNTIME_CACHE);
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch (_) {
+    return (await caches.match(request, { ignoreSearch: true })) ||
+      (navigation ? await caches.match("./index.html", { ignoreSearch: true }) : null) ||
+      new Response(navigation ? "Saveline offline" : "", { status: 503 });
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request, { ignoreSearch: false });
+  if (cached) return cached;
   try {
     const response = await fetch(request);
     if (response && response.ok) {
@@ -94,41 +77,6 @@ async function networkFirstNavigation(request) {
     }
     return response;
   } catch (_) {
-    return (
-      await caches.match(request, { ignoreSearch: true }) ||
-      await caches.match("./index.html", { ignoreSearch: true }) ||
-      await caches.match("./", { ignoreSearch: true }) ||
-      new Response("Saveline offline", {
-        status: 503,
-        headers: { "Content-Type": "text/plain; charset=utf-8" }
-      })
-    );
+    return (await caches.match(request, { ignoreSearch: true })) || new Response("", { status: 504 });
   }
-}
-
-async function cacheFirstWithRefresh(request) {
-  const cached = await caches.match(request, { ignoreSearch: false });
-
-  const refresh = fetch(request)
-    .then(async (response) => {
-      if (response && (response.ok || response.type === "opaque")) {
-        const cache = await caches.open(RUNTIME_CACHE);
-        await cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  if (cached) {
-    return cached;
-  }
-
-  const response = await refresh;
-  if (response) return response;
-
-  // Verzióparaméter eltérés esetén is keresse meg a helyi fájlt.
-  const fallback = await caches.match(request, { ignoreSearch: true });
-  if (fallback) return fallback;
-
-  return new Response("", { status: 504, statusText: "Offline" });
 }

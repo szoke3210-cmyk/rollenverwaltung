@@ -384,11 +384,11 @@
 
 
   const FULL_SYNC_TABLES = [
-    { name: "rollen", required: true },
-    { name: "kunden", required: true },
-    { name: "historie", required: false },
-    { name: "qr_bemerkungen", required: false },
-    { name: "aktivitaet", required: false }
+    { name: "rollen", important: true },
+    { name: "kunden", important: false },
+    { name: "historie", important: false },
+    { name: "qr_bemerkungen", important: false },
+    { name: "aktivitaet", important: false }
   ];
 
   async function fetchWholeTable(table, token) {
@@ -396,16 +396,23 @@
     const allRows = [];
 
     for (let offset = 0; ; offset += pageSize) {
-      const separator = "?";
-      const url = `${SUPABASE_URL}/rest/v1/${table}${separator}select=*&limit=${pageSize}&offset=${offset}`;
-      const response = await fetch(url, {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json"
-        },
-        cache: "no-store"
-      });
+      const url = `${SUPABASE_URL}/rest/v1/${table}?select=*&limit=${pageSize}&offset=${offset}`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try {
+        response = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json"
+          },
+          cache: "no-store",
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
 
       if (!response.ok) {
         const message = await response.text();
@@ -420,11 +427,24 @@
     return allRows;
   }
 
+  async function getCurrentToken() {
+    if (typeof accessToken !== "undefined" && accessToken) return accessToken;
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      return data?.session?.access_token || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   async function refreshAllData(options = {}) {
     if (!navigator.onLine) return { updated: false, offline: true };
 
-    const token = window.accessToken || (typeof accessToken !== "undefined" ? accessToken : null);
-    if (!token) return { updated: false, noSession: true };
+    const token = await getCurrentToken();
+    if (!token) {
+      await updateConnectionStatus("Online · Anmeldung für Offline-Daten fehlt");
+      return { updated: false, noSession: true };
+    }
 
     const quiet = options.quiet === true;
     if (!quiet) await updateConnectionStatus("Online · Daten werden aktualisiert…");
@@ -432,32 +452,41 @@
     const counts = {};
     const errors = [];
 
-    // Zuerst ausstehende Offline-Änderungen hochladen, danach den aktuellen Serverstand laden.
     await syncQueue();
 
     for (const tableInfo of FULL_SYNC_TABLES) {
       try {
         const rows = await fetchWholeTable(tableInfo.name, token);
+        // Csak sikeres, teljes lekérés után cseréljük le a helyi táblát.
         await replaceTable(tableInfo.name, rows);
         counts[tableInfo.name] = rows.length;
       } catch (error) {
-        errors.push({ table: tableInfo.name, message: error.message, required: tableInfo.required });
-        console.warn(`Tabelle ${tableInfo.name} konnte nicht vollständig gespeichert werden:`, error);
-        if (tableInfo.required) throw error;
+        errors.push({ table: tableInfo.name, message: error.message });
+        console.warn(`Tabelle ${tableInfo.name} konnte nicht gespeichert werden:`, error);
       }
     }
 
+    const rollenCount = counts.rollen;
     const now = new Date().toISOString();
     await setMeta("lastFullSync", now);
     await setMeta("lastFullSyncCounts", counts);
     await setMeta("lastFullSyncErrors", errors);
 
     if (!quiet) {
-      const rollenCount = counts.rollen ?? 0;
-      await updateConnectionStatus(`Online · Offline-Daten aktuell (${rollenCount} Rollen)`);
+      if (typeof rollenCount === "number") {
+        await updateConnectionStatus(`Online · Offline-Daten aktuell (${rollenCount} Rollen)`);
+      } else {
+        const localRollen = await getAllRecords("rollen").catch(() => []);
+        await updateConnectionStatus(`Online · Rollen-Download fehlgeschlagen (${localRollen.length} lokal)`);
+      }
     }
 
-    return { updated: true, counts, errors, at: now };
+    return {
+      updated: typeof rollenCount === "number",
+      counts,
+      errors,
+      at: now
+    };
   }
 
   async function getSyncInfo() {
@@ -501,12 +530,12 @@
     await updateConnectionStatus();
     if (!("serviceWorker" in navigator)) return;
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=3", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=5", { scope: "./", updateViaCache: "none" });
       await registration.update();
       await navigator.serviceWorker.ready;
       console.log("Service Worker bereit:", registration.scope);
       if (!navigator.serviceWorker.controller && navigator.onLine) {
-        const key = "saveline-sw-v3-reload";
+        const key = "saveline-sw-v5-reload";
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, "1");
           location.reload();
