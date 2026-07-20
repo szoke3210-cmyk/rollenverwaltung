@@ -54,7 +54,7 @@
   }
 
   async function start() {
-    if (started || !navigator.onLine || !window.supabaseClient || !currentUser) return;
+    if (started || !navigator.onLine || typeof supabaseClient === "undefined" || !currentUser) return;
     started = true;
 
     channel = supabaseClient.channel("saveline-database-live-v1");
@@ -81,7 +81,7 @@
   async function stop() {
     started = false;
     clearTimeout(refreshTimer);
-    if (channel && window.supabaseClient) {
+    if (channel && typeof supabaseClient !== "undefined") {
       try { await supabaseClient.removeChannel(channel); } catch (_) {}
     }
     channel = null;
