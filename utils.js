@@ -23,6 +23,9 @@ function statusBadge(status) {
   } else if (status === "Nicht freigegeben") {
     background = "#7c3aed";
     icon = "🔒";
+  } else if (status === "Test notwendig") {
+    background = "#ff0000";
+    icon = "🧪";
   }
 
   return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${background};color:white;font-weight:bold;font-size:13px;">${icon} ${escapeHtml(status || "-")}</span>`;
