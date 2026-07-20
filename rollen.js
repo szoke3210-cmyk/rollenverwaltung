@@ -735,6 +735,63 @@ html += `
   }
 
   html += `
+  <div class="box">
+    <h3>Historie</h3>
+`;
+
+if (!historie.length) {
+  html += `
+    <p>Keine Historie vorhanden.</p>
+  `;
+} else {
+  historie.forEach(h => {
+    const datum = h.datum
+      ? new Date(h.datum).toLocaleString("de-DE")
+      : "-";
+
+    html += `
+      <div style="
+        border-bottom:1px solid #ddd;
+        padding:10px 0;
+      ">
+        <p>
+          <b>${datum}</b>
+        </p>
+
+        <p>
+          ${escapeHtml(h.aktion || "-")}
+        </p>
+
+        ${h.bemerkung ? `
+          <p>
+            <b>Bemerkung:</b>
+            ${escapeHtml(h.bemerkung)}
+          </p>
+        ` : ""}
+
+        ${h.verbrauch !== null && h.verbrauch !== undefined ? `
+          <p>
+            <b>Verbrauch:</b>
+            ${h.verbrauch} m
+          </p>
+        ` : ""}
+
+        ${h.laenge !== null && h.laenge !== undefined ? `
+          <p>
+            <b>Länge:</b>
+            ${h.laenge} m
+          </p>
+        ` : ""}
+      </div>
+    `;
+  });
+}
+
+html += `
+  </div>
+`;
+
+  html += `
     <button onclick="location.href='index.html'">
      🏠 Zur Übersicht
     </button>
