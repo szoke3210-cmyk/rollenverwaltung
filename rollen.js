@@ -60,17 +60,17 @@ async function showList() {
   let typen = {};
 
   alle.forEach(r => {
-    if (!typen[r.typ]) {
-      typen[r.typ] = {
-        count: 0,
-        meter: 0,
-        lager: 0,
-        electro: 0,
-        nichtFreigegeben: 0,
-        verbraucht: 0
-      };
-    }
-  });
+  if (!typen[r.typ]) {
+    typen[r.typ] = {
+      count: 0,
+      meter: 0,
+      lager: 0,
+      electro: 0,
+      nichtFreigegeben: 0,
+      testNotwendig: 0,
+      verbraucht: 0
+    };
+  }
 
   typen[r.typ].count++;
   typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
@@ -85,6 +85,10 @@ async function showList() {
 
   if (r.status === "Nicht freigegeben") {
     typen[r.typ].nichtFreigegeben++;
+  }
+
+  if (r.status === "Test notwendig") {
+    typen[r.typ].testNotwendig++;
   }
 
   if (r.status === "Verbraucht") {
