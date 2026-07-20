@@ -2,69 +2,75 @@ async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
 
   if (typFilter) {
-    query = "rollen?typ=eq." + encodeURIComponent(typFilter) + "&select=*&order=kennung.asc";
+    query =
+      "rollen?typ=eq." +
+      encodeURIComponent(typFilter) +
+      "&select=*&order=kennung.asc";
   }
 
   let rollen = await api(query);
 
-const statusFilter =
-  sessionStorage.getItem("statusFilter") || "alle";
+  const statusFilter =
+    sessionStorage.getItem("statusFilter") || "alle";
 
-if (statusFilter === "alle") {
-
-  if (isAdmin) {
-
-    // Admin lát mindent
-
-  } else {
-
-    rollen = rollen.filter(r =>
-      r.status === "Im Lager" ||
-      r.status === "Electrotherm" ||
-      r.status === "Nicht freigegeben"
-    );
-
+  if (statusFilter === "alle") {
+    if (isAdmin) {
+      // Admin lát mindent
+    } else {
+      rollen = rollen.filter(r =>
+        r.status === "Im Lager" ||
+        r.status === "Electrotherm" ||
+        r.status === "Nicht freigegeben" ||
+        r.status === "Test notwendig"
+      );
+    }
   }
 
-}
-
   if (statusFilter === "verbraucht") {
-  rollen = rollen.filter(r =>
-    r.status === "Verbraucht"
-  );
-}
-  
-if (statusFilter === "lager") {
-  rollen = rollen.filter(r =>
-    r.status === "Im Lager"
-  );
-}
+    rollen = rollen.filter(r =>
+      r.status === "Verbraucht"
+    );
+  }
 
-if (statusFilter === "electrotherm") {
-  rollen = rollen.filter(r =>
-    r.status === "Electrotherm"
-  );
-}
+  if (statusFilter === "lager") {
+    rollen = rollen.filter(r =>
+      r.status === "Im Lager"
+    );
+  }
 
-if (statusFilter === "nichtfreigegeben") {
-  rollen = rollen.filter(r =>
-    r.status === "Nicht freigegeben"
-  );
-}
+  if (statusFilter === "electrotherm") {
+    rollen = rollen.filter(r =>
+      r.status === "Electrotherm"
+    );
+  }
+
+  if (statusFilter === "test") {
+    rollen = rollen.filter(r =>
+      r.status === "Test notwendig"
+    );
+  }
+
+  if (statusFilter === "nichtfreigegeben") {
+    rollen = rollen.filter(r =>
+      r.status === "Nicht freigegeben"
+    );
+  }
+
   let alle = await api("rollen?select=*");
   let typen = {};
 
   alle.forEach(r => {
-  if (!typen[r.typ]) {
-    typen[r.typ] = {
-      count: 0,
-      meter: 0,
-      lager: 0,
-      electro: 0,
-      nichtFreigegeben: 0,
-      verbraucht: 0
-    };
-  }
+    if (!typen[r.typ]) {
+      typen[r.typ] = {
+        count: 0,
+        meter: 0,
+        lager: 0,
+        electro: 0,
+        nichtFreigegeben: 0,
+        verbraucht: 0
+      };
+    }
+  });
 
   typen[r.typ].count++;
   typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
@@ -227,7 +233,7 @@ html += `
 
     <label>Status auswählen</label>
 
-    <select id="statusFilter" onchange="changeStatusFilter()">
+    <select  onchange="changeStatusFilter()">
 
   <option value="alle" ${
     statusFilter === "alle" ? "selected" : ""
@@ -241,17 +247,23 @@ html += `
     Im Lager
   </option>
 
-  <option value="electrotherm" ${
-    statusFilter === "electrotherm" ? "selected" : ""
-  }>
-    Electrotherm
-  </option>
+ <option value="electrotherm" ${
+  statusFilter === "electrotherm" ? "selected" : ""
+}>
+  Electrotherm
+</option>
 
-  <option value="nichtfreigegeben" ${
-    statusFilter === "nichtfreigegeben" ? "selected" : ""
-  }>
-    Nicht freigegeben
-  </option>
+<option value="test" ${
+  statusFilter === "test" ? "selected" : ""
+}>
+  Test notwendig
+</option>
+
+<option value="nichtfreigegeben" ${
+  statusFilter === "nichtfreigegeben" ? "selected" : ""
+}>
+  Nicht freigegeben
+</option>
 
   ${isAdmin ? `
     <option value="verbraucht" ${
