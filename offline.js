@@ -350,6 +350,21 @@
     element.className = "connection-status";
     element.setAttribute("role", "status");
     element.setAttribute("aria-live", "polite");
+    element.title = "Klicken, um Offline-Daten zu aktualisieren";
+    element.tabIndex = 0;
+    const triggerRefresh = async () => {
+      if (!navigator.onLine) return;
+      try {
+        await refreshAllData();
+      } catch (error) {
+        console.error(error);
+        await updateConnectionStatus("Online · Aktualisierung fehlgeschlagen");
+      }
+    };
+    element.addEventListener("click", triggerRefresh);
+    element.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") triggerRefresh();
+    });
     document.body.appendChild(element);
     return element;
   }
@@ -367,6 +382,93 @@
     document.documentElement.classList.toggle("app-offline", !online);
   }
 
+
+  const FULL_SYNC_TABLES = [
+    { name: "rollen", required: true },
+    { name: "kunden", required: true },
+    { name: "historie", required: false },
+    { name: "qr_bemerkungen", required: false },
+    { name: "aktivitaet", required: false }
+  ];
+
+  async function fetchWholeTable(table, token) {
+    const pageSize = 1000;
+    const allRows = [];
+
+    for (let offset = 0; ; offset += pageSize) {
+      const separator = "?";
+      const url = `${SUPABASE_URL}/rest/v1/${table}${separator}select=*&limit=${pageSize}&offset=${offset}`;
+      const response = await fetch(url, {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json"
+        },
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(`${table}: ${response.status} ${message}`);
+      }
+
+      const rows = await response.json();
+      allRows.push(...rows);
+      if (rows.length < pageSize) break;
+    }
+
+    return allRows;
+  }
+
+  async function refreshAllData(options = {}) {
+    if (!navigator.onLine) return { updated: false, offline: true };
+
+    const token = window.accessToken || (typeof accessToken !== "undefined" ? accessToken : null);
+    if (!token) return { updated: false, noSession: true };
+
+    const quiet = options.quiet === true;
+    if (!quiet) await updateConnectionStatus("Online · Daten werden aktualisiert…");
+
+    const counts = {};
+    const errors = [];
+
+    // Zuerst ausstehende Offline-Änderungen hochladen, danach den aktuellen Serverstand laden.
+    await syncQueue();
+
+    for (const tableInfo of FULL_SYNC_TABLES) {
+      try {
+        const rows = await fetchWholeTable(tableInfo.name, token);
+        await replaceTable(tableInfo.name, rows);
+        counts[tableInfo.name] = rows.length;
+      } catch (error) {
+        errors.push({ table: tableInfo.name, message: error.message, required: tableInfo.required });
+        console.warn(`Tabelle ${tableInfo.name} konnte nicht vollständig gespeichert werden:`, error);
+        if (tableInfo.required) throw error;
+      }
+    }
+
+    const now = new Date().toISOString();
+    await setMeta("lastFullSync", now);
+    await setMeta("lastFullSyncCounts", counts);
+    await setMeta("lastFullSyncErrors", errors);
+
+    if (!quiet) {
+      const rollenCount = counts.rollen ?? 0;
+      await updateConnectionStatus(`Online · Offline-Daten aktuell (${rollenCount} Rollen)`);
+    }
+
+    return { updated: true, counts, errors, at: now };
+  }
+
+  async function getSyncInfo() {
+    return {
+      lastFullSync: await getMeta("lastFullSync"),
+      counts: (await getMeta("lastFullSyncCounts")) || {},
+      errors: (await getMeta("lastFullSyncErrors")) || [],
+      pending: (await getQueue()).length
+    };
+  }
+
   window.SavelineOffline = {
     cacheGet,
     localGet,
@@ -374,7 +476,9 @@
     queueMutation,
     syncQueue,
     updateConnectionStatus,
-    getQueue
+    getQueue,
+    refreshAllData,
+    getSyncInfo
   };
 
   window.addEventListener("online", async () => {
@@ -382,10 +486,14 @@
     const result = await syncQueue();
     if (result.synced > 0) {
       await updateConnectionStatus(`Online · ${result.synced} Änderung${result.synced === 1 ? "" : "en"} synchronisiert`);
-      setTimeout(() => location.reload(), 900);
-    } else {
-      await updateConnectionStatus("Online");
     }
+    try {
+      await refreshAllData({ quiet: false });
+    } catch (error) {
+      console.warn("Vollständige Offline-Aktualisierung fehlgeschlagen:", error);
+      await updateConnectionStatus("Online · Synchronisierung teilweise fehlgeschlagen");
+    }
+    if (result.synced > 0) setTimeout(() => location.reload(), 700);
   });
   window.addEventListener("offline", () => updateConnectionStatus());
 

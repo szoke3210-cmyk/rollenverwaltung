@@ -12,6 +12,14 @@ async function startApp() {
       return;
     }
 
+    if (navigator.onLine && window.SavelineOffline) {
+      try {
+        await window.SavelineOffline.refreshAllData();
+      } catch (error) {
+        console.warn("Offline-Daten konnten nicht vollständig aktualisiert werden:", error);
+      }
+    }
+
     if (page === "statistik") {
       await showStatistik();
     } else if (page === "typen") {

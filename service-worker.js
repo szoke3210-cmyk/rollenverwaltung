@@ -1,5 +1,5 @@
-const CACHE_VERSION = "saveline-shell-v3";
-const RUNTIME_CACHE = "saveline-runtime-v3";
+const CACHE_VERSION = "saveline-shell-v4";
+const RUNTIME_CACHE = "saveline-runtime-v4";
 
 const CORE_ASSETS = [
   "./",
@@ -9,18 +9,18 @@ const CORE_ASSETS = [
   "./config.js",
   "./state.js",
   "./utils.js",
-  "./api.js?v=3",
+  "./api.js?v=4",
   "./auth.js?v=3",
   "./aktivitaet.js",
   "./backup.js",
-  "./qr.js",
+  "./qr.js?v=4",
   "./typen.js",
   "./statistik.js",
   "./kunden.js",
   "./scanner.js",
   "./rollen.js?v=20260720-1",
-  "./app.js?v=20260720-3",
-  "./offline.js?v=3",
+  "./app.js?v=20260720-4",
+  "./offline.js?v=4",
   "./SL-LO-CO.jpg?v=2",
   "./saveway-background.png",
   "./extra-urlaub.jpg",

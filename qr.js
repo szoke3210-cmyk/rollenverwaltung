@@ -8,12 +8,35 @@ async function showPublicRolle() {
     "Prefer": "return=representation"
   };
 
-  const res = await fetch(
-    SUPABASE_URL + "/rest/v1/rollen?kennung=eq." + encodeURIComponent(kennung),
-    { headers: publicHeaders }
-  );
+  let rollen = [];
 
-  const rollen = await res.json();
+  if (!navigator.onLine && window.SavelineOffline) {
+    rollen = await window.SavelineOffline.localGet(
+      "rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*"
+    );
+  } else {
+    try {
+      const res = await fetch(
+        SUPABASE_URL + "/rest/v1/rollen?kennung=eq." + encodeURIComponent(kennung),
+        { headers: publicHeaders }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      rollen = await res.json();
+      if (window.SavelineOffline) {
+        await window.SavelineOffline.cacheGet(
+          "rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*",
+          rollen
+        );
+      }
+    } catch (error) {
+      console.warn("QR-Rolle wird aus Offline-Speicher geladen:", error);
+      if (window.SavelineOffline) {
+        rollen = await window.SavelineOffline.localGet(
+          "rollen?kennung=eq." + encodeURIComponent(kennung) + "&select=*"
+        );
+      }
+    }
+  }
 
   if (!rollen.length) {
     app.innerHTML = "<h2>Rolle nicht gefunden</h2>";
