@@ -92,7 +92,12 @@ async function showList() {
  if (r.status !== "Verbraucht") {
   typen[r.typ].count++;
 }
+  if (
+  r.status !== "Verbraucht" &&
+  r.status !== "Archiviert"
+) {
   typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
+}
 
   if (r.status === "Im Lager") {
     typen[r.typ].lager++;
