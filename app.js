@@ -33,10 +33,15 @@ async function startApp() {
   } catch (error) {
     console.error("Fehler in startApp:", error);
 
+    const offline = !navigator.onLine;
+
     document.getElementById("app").innerHTML = `
       <div class="box">
-        <h2>Fehler beim Laden</h2>
-        <p>${escapeHtml(error.message)}</p>
+        <h2>${offline ? "Offline" : "Fehler beim Laden"}</h2>
+        <p>${offline
+          ? "Die Anwendung wurde offline geöffnet. Für Rollen- und Kundendaten ist in dieser ersten Offline-Stufe noch eine Internetverbindung erforderlich."
+          : escapeHtml(error.message)}</p>
+        ${offline ? `<button type="button" onclick="location.reload()">Erneut versuchen</button>` : ""}
       </div>
     `;
   }
