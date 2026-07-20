@@ -40,6 +40,13 @@ async function startApp() {
       }, 500);
     }
 
+    if (navigator.onLine && window.SavelineRealtime) {
+      setTimeout(() => {
+        window.SavelineRealtime.start()
+          .catch(error => console.warn("Realtime konnte nicht gestartet werden:", error));
+      }, 900);
+    }
+
   } catch (error) {
     console.error("Fehler in startApp:", error);
 

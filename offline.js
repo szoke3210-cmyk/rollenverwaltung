@@ -489,6 +489,44 @@
     };
   }
 
+
+  async function queueTouchesRecord(table, id) {
+    const items = await getQueue();
+    const wantedId = String(id);
+    return items.some(item => {
+      if (getTable(item.path) !== table) return false;
+      const parsed = parsePath(item.path);
+      const pathId = parsed.params.get("id");
+      if (pathId && String(decodeEq(pathId)) === wantedId) return true;
+
+      try {
+        const body = item.body ? JSON.parse(item.body) : null;
+        const rows = Array.isArray(body) ? body : [body];
+        if (rows.some(row => row && String(row.id) === wantedId)) return true;
+      } catch (_) {}
+
+      return (item.tempResult || []).some(row => row && String(row.id) === wantedId);
+    });
+  }
+
+  async function applyRealtimeChange(table, eventType, newRow, oldRow) {
+    const row = eventType === "DELETE" ? oldRow : newRow;
+    const id = row?.id;
+    if (!table || id == null) return { applied: false, reason: "missing-id" };
+
+    // Eine noch nicht synchronisierte lokale Änderung darf nicht von einem
+    // fremden Realtime-Ereignis überschrieben werden.
+    if (await queueTouchesRecord(table, id)) {
+      return { applied: false, reason: "pending-local-change" };
+    }
+
+    if (eventType === "DELETE") await deleteRecord(table, id);
+    else await putRecord(table, row);
+
+    await setMeta("lastRealtimeChange", new Date().toISOString());
+    return { applied: true };
+  }
+
   async function getSyncInfo() {
     return {
       lastFullSync: await getMeta("lastFullSync"),
@@ -507,7 +545,8 @@
     updateConnectionStatus,
     getQueue,
     refreshAllData,
-    getSyncInfo
+    getSyncInfo,
+    applyRealtimeChange
   };
 
   window.addEventListener("online", async () => {
@@ -530,12 +569,12 @@
     await updateConnectionStatus();
     if (!("serviceWorker" in navigator)) return;
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=6", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=7", { scope: "./", updateViaCache: "none" });
       await registration.update();
       await navigator.serviceWorker.ready;
       console.log("Service Worker bereit:", registration.scope);
       if (!navigator.serviceWorker.controller && navigator.onLine) {
-        const key = "saveline-sw-v6-reload";
+        const key = "saveline-sw-v7-reload";
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, "1");
           location.reload();
