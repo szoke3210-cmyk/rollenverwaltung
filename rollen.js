@@ -237,7 +237,7 @@ html += `
 
     <label>Status auswählen</label>
 
-    <select  onchange="changeStatusFilter()">
+    <select id="statusFilter" onchange="changeStatusFilter()">
 
   <option value="alle" ${
     statusFilter === "alle" ? "selected" : ""
