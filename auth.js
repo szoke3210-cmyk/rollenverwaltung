@@ -121,17 +121,35 @@ function loginEnter(event) {
 
 
 async function initSupabaseSession() {
+  const useOfflineLogin = () => {
+    const cachedUserRaw = localStorage.getItem("savelineCachedUser");
+    if (!cachedUserRaw || navigator.onLine) return false;
+
+    try {
+      currentUser = JSON.parse(cachedUserRaw);
+      currentUserRole = localStorage.getItem("savelineUserRole") || "user";
+      isAdmin = currentUserRole === "admin";
+      accessToken = localStorage.getItem("savelineCachedAccessToken") || null;
+      showLoggedInUser();
+      console.log("Offline-Anmeldung aus lokalem Speicher aktiv");
+      return true;
+    } catch (error) {
+      console.error("Offline-Anmeldung konnte nicht geladen werden:", error);
+      return false;
+    }
+  };
+
   try {
     const { data, error } = await supabaseClient.auth.getSession();
 
     if (error) {
       console.error("Session Fehler:", error);
+      if (useOfflineLogin()) return true;
 
       accessToken = null;
       currentUser = null;
       isAdmin = false;
       currentUserRole = "user";
-
       showLoggedInUser();
       return false;
     }
@@ -140,28 +158,34 @@ async function initSupabaseSession() {
       accessToken = data.session.access_token;
       currentUser = data.session.user;
 
+      localStorage.setItem("savelineCachedUser", JSON.stringify({
+        id: currentUser.id,
+        email: currentUser.email
+      }));
+      localStorage.setItem("savelineCachedAccessToken", accessToken);
+
       await loadUserRole();
       showLoggedInUser();
-
       return true;
     }
+
+    if (useOfflineLogin()) return true;
 
     accessToken = null;
     currentUser = null;
     isAdmin = false;
     currentUserRole = "user";
-
     showLoggedInUser();
     return false;
 
   } catch (error) {
     console.error("Session Fehler:", error);
+    if (useOfflineLogin()) return true;
 
     accessToken = null;
     currentUser = null;
     isAdmin = false;
     currentUserRole = "user";
-
     showLoggedInUser();
     return false;
   }

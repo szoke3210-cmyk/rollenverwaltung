@@ -218,6 +218,12 @@ if (accessToken) {
 
 
 async function loadQrBemerkungen(rollenId) {
+  const offlinePath = `qr_bemerkungen?rollen_id=eq.${rollenId}&select=*&order=erstellt_am.desc`;
+
+  if (!navigator.onLine && window.SavelineOffline) {
+    return await window.SavelineOffline.localGet(offlinePath);
+  }
+
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/qr_bemerkungen?rollen_id=eq.${rollenId}&select=*&order=erstellt_am.desc`,
@@ -231,13 +237,15 @@ async function loadQrBemerkungen(rollenId) {
 
     if (!res.ok) {
       console.error("QR Bemerkungen Fehler:", await res.text());
-      return [];
+      return window.SavelineOffline ? await window.SavelineOffline.localGet(offlinePath) : [];
     }
 
-    return await res.json();
+    const rows = await res.json();
+    if (window.SavelineOffline) await window.SavelineOffline.cacheGet(offlinePath, rows);
+    return rows;
   } catch (error) {
     console.error("QR Bemerkungen Fehler:", error);
-    return [];
+    return window.SavelineOffline ? await window.SavelineOffline.localGet(offlinePath) : [];
   }
 }
 

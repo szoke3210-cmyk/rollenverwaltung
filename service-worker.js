@@ -1,12 +1,12 @@
-const CACHE_VERSION = "saveline-shell-v5";
-const RUNTIME_CACHE = "saveline-runtime-v5";
+const CACHE_VERSION = "saveline-shell-v6";
+const RUNTIME_CACHE = "saveline-runtime-v6";
 
 const CORE_ASSETS = [
   "./", "./index.html", "./manifest.json", "./style.css?v=9",
-  "./config.js", "./state.js", "./utils.js", "./api.js?v=5",
-  "./auth.js?v=3", "./aktivitaet.js", "./backup.js", "./qr.js?v=5",
+  "./config.js", "./state.js", "./utils.js", "./api.js?v=6",
+  "./auth.js?v=4", "./aktivitaet.js", "./backup.js", "./qr.js?v=6",
   "./typen.js", "./statistik.js", "./kunden.js", "./scanner.js",
-  "./rollen.js?v=20260720-1", "./app.js?v=20260720-5", "./offline.js?v=5",
+  "./rollen.js?v=20260720-1", "./app.js?v=20260720-6", "./offline.js?v=6",
   "./SL-LO-CO.jpg?v=2", "./saveway-background.png", "./extra-urlaub.jpg",
   "./icon-192.png", "./icon-512.png"
 ];

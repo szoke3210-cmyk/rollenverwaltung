@@ -530,12 +530,12 @@
     await updateConnectionStatus();
     if (!("serviceWorker" in navigator)) return;
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=5", { scope: "./", updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=6", { scope: "./", updateViaCache: "none" });
       await registration.update();
       await navigator.serviceWorker.ready;
       console.log("Service Worker bereit:", registration.scope);
       if (!navigator.serviceWorker.controller && navigator.onLine) {
-        const key = "saveline-sw-v5-reload";
+        const key = "saveline-sw-v6-reload";
         if (!sessionStorage.getItem(key)) {
           sessionStorage.setItem(key, "1");
           location.reload();
