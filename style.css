@@ -1158,3 +1158,7 @@ tr:not(:first-child):hover {
   font-size: 11px;
   min-height: 28px;
 }
+.status-test {
+  background: #dc2626;
+  color: white;
+}
