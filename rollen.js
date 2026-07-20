@@ -387,14 +387,15 @@ async function neueRolle() {
 
   if (data.length) {
   await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: data[0].id,
-      aktion: "Neu angelegt",
-      laenge,
-      bemerkung
-    })
-  });
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    aktion: "Verbraucht",
+    laenge: r.aktuelle_laenge,
+    bemerkung: "Rolle archiviert",
+    benutzer: currentUser?.email || "Unbekannt"
+  })
+});
 
   await logAktion(
     "Neue Rolle erstellt",
@@ -754,13 +755,14 @@ if (!historie.length) {
         border-bottom:1px solid #ddd;
         padding:10px 0;
       ">
-        <p>
-          <b>${datum}</b>
-        </p>
+        <p><b>${datum}</b></p>
 
-        <p>
-          ${escapeHtml(h.aktion || "-")}
-        </p>
+<p>
+  <b>Benutzer:</b>
+  ${escapeHtml(h.benutzer || "Unbekannt")}
+</p>
+
+<p>${escapeHtml(h.aktion || "-")}</p>
 
         ${h.bemerkung ? `
           <p>
