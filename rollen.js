@@ -574,7 +574,7 @@ async function showDetail() {
             margin-left:10px;
           "
         >
-         ❌ Rolle löschen
+         📦 Rolle archivieren
         </button>
       ` : ""}
     </div>
@@ -1228,7 +1228,7 @@ async function loadRolleEditor() {
 ` : ""}
 
         <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
-         ❌ Rolle löschen
+         📦 Rolle archivieren
         </button>
       ` : ""}
     </div>
@@ -1280,9 +1280,15 @@ location.reload();
 
 
 async function deleteRolle(id) {
-  if (!confirm("Diese Rolle wirklich löschen? Die Historie bleibt erhalten.")) return;
+  if (!confirm(
+    "Diese Rolle archivieren? Die Historie und Statistik bleiben erhalten."
+  )) {
+    return;
+  }
 
-  const daten = await api("rollen?id=eq." + id + "&select=*");
+  const daten = await api(
+    "rollen?id=eq." + id + "&select=*"
+  );
 
   if (!daten.length) {
     alert("Rolle nicht gefunden.");
@@ -1291,17 +1297,33 @@ async function deleteRolle(id) {
 
   const rolle = daten[0];
 
-  await logAktion(
-    "Rolle gelöscht",
-    rolle.kennung,
-    `Typ: ${rolle.typ}, Status: ${rolle.status}, Länge: ${rolle.aktuelle_laenge} m`
-  );
-
   await api("rollen?id=eq." + id, {
-    method: "DELETE"
+    method: "PATCH",
+    body: JSON.stringify({
+      status: "Verbraucht",
+      auftrag: ""
+    })
   });
 
-  alert("Rolle gelöscht");
+  await api("historie", {
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: id,
+      aktion: "Archiviert",
+      laenge: rolle.aktuelle_laenge,
+      bemerkung: "Rolle wurde archiviert",
+      typ: rolle.typ,
+      auftrag: rolle.auftrag || ""
+    })
+  });
+
+  await logAktion(
+    "Rolle archiviert",
+    rolle.kennung,
+    `Typ: ${rolle.typ}, Länge: ${rolle.aktuelle_laenge} m`
+  );
+
+  alert("Rolle wurde archiviert. Historie und Statistik bleiben erhalten.");
   location.href = "index.html";
 }
 
