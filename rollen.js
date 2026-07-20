@@ -1,3 +1,20 @@
+async function getAktuellerBenutzer() {
+  try {
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) {
+      console.error("Benutzer konnte nicht geladen werden:", error);
+      return "Unbekannt";
+    }
+
+    return data?.session?.user?.email || "Unbekannt";
+  } catch (error) {
+    console.error("Benutzerfehler:", error);
+    return "Unbekannt";
+  }
+}
+
 async function showList() {
   let query = "rollen?select=*&order=typ.asc,kennung.asc";
 
@@ -385,17 +402,21 @@ async function neueRolle() {
   })
 });
 
-  if (data.length) {
+const benutzer = await getAktuellerBenutzer();
+
+if (data.length) {
   await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    aktion: "Verbraucht",
-    laenge: r.aktuelle_laenge,
-    bemerkung: "Rolle archiviert",
-    benutzer: currentUser?.email || "Unbekannt"
-  })
-});
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: data[0].id,
+      aktion: "Rolle erstellt",
+      laenge: laenge,
+      bemerkung: bemerkung,
+      typ: typ,
+      benutzer: benutzer
+    })
+  });
+}
 
   await logAktion(
     "Neue Rolle erstellt",
@@ -999,18 +1020,21 @@ async function speichern(id) {
     aktion += " | Verbrauch: " + verbrauch + " m";
   }
 
-  await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      aktion: aktion,
-      laenge: neueLaenge,
-      bemerkung: auftrag,
-      verbrauch: verbrauch,
-      typ: r.typ,
-      auftrag: auftrag
-    })
-  });
+ const benutzer = await getAktuellerBenutzer();
+
+await api("historie", {
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    aktion: aktion,
+    laenge: neueLaenge,
+    bemerkung: auftrag,
+    verbrauch: verbrauch,
+    typ: r.typ,
+    auftrag: auftrag,
+    benutzer: benutzer
+  })
+});
 
   await logAktion(
     aktion,
@@ -1089,15 +1113,18 @@ async function rolleFreigeben(id) {
     })
   });
 
-  await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      datum: new Date().toISOString(),
-      aktion: "Freigegeben",
-      bemerkung: "Rolle wurde freigegeben"
-    })
-  });
+  const benutzer = await getAktuellerBenutzer();
+
+await api("historie", {
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    datum: new Date().toISOString(),
+    aktion: "Freigegeben",
+    bemerkung: "Rolle wurde freigegeben",
+    benutzer: benutzer
+  })
+});
 
   await logAktion(
     "Rolle freigegeben",
@@ -1364,17 +1391,20 @@ async function deleteRolle(id) {
     })
   });
 
-  await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      aktion: "Archiviert",
-      laenge: rolle.aktuelle_laenge,
-      bemerkung: "Rolle wurde archiviert",
-      typ: rolle.typ,
-      auftrag: rolle.auftrag || ""
-    })
-  });
+  const benutzer = await getAktuellerBenutzer();
+
+await api("historie", {
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    aktion: "Archiviert",
+    laenge: rolle.aktuelle_laenge,
+    bemerkung: "Rolle wurde archiviert",
+    typ: rolle.typ,
+    auftrag: rolle.auftrag || "",
+    benutzer: benutzer
+  })
+});
 
   await logAktion(
     "Rolle archiviert",
@@ -1396,15 +1426,17 @@ async function freigeben(id) {
     })
   });
 
-  await api("historie", {
-    method: "POST",
-    body: JSON.stringify({
-      rollen_id: id,
-      aktion: "Freigegeben",
-      datum: new Date().toISOString()
-    })
-  });
+  const benutzer = await getAktuellerBenutzer();
 
+await api("historie", {
+  method: "POST",
+  body: JSON.stringify({
+    rollen_id: id,
+    aktion: "Freigegeben",
+    datum: new Date().toISOString(),
+    benutzer: benutzer
+  })
+});
   await logAktion(
     "Rolle freigegeben",
     "",
