@@ -765,9 +765,16 @@ if (!historie.length) {
   `;
 } else {
   historie.forEach(h => {
-    const datum = h.datum
-      ? new Date(h.datum).toLocaleString("de-DE")
-      : "-";
+   const datum = h.datum
+  ? new Date(h.datum).toLocaleString("de-DE", {
+      timeZone: "Europe/Berlin",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  : "-";
 
     html += `
       <div style="
