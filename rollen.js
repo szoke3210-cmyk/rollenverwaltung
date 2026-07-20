@@ -765,16 +765,28 @@ if (!historie.length) {
   `;
 } else {
   historie.forEach(h => {
-   const datum = h.datum
-  ? new Date(h.datum).toLocaleString("de-DE", {
-      timeZone: "Europe/Berlin",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    })
-  : "-";
+   let datum = "-";
+
+if (h.datum) {
+  let datumText = h.datum;
+
+  // Ha a Supabase nem ad időzónát, UTC-ként kezeljük.
+  if (
+    !datumText.endsWith("Z") &&
+    !/[+-]\d{2}:\d{2}$/.test(datumText)
+  ) {
+    datumText += "Z";
+  }
+
+  datum = new Date(datumText).toLocaleString("de-DE", {
+    timeZone: "Europe/Berlin",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
 
     html += `
       <div style="
