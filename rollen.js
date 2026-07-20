@@ -1167,9 +1167,25 @@ async function loadRolleEditor() {
 
       <label>Status</label>
 <select id="editStatus">
-  <option value="Nicht freigegeben" ${r.status === "Nicht freigegeben" ? "selected" : ""}>Nicht freigegeben</option>
-  <option value="Im Lager" ${r.status === "Im Lager" ? "selected" : ""}>Im Lager</option>
-  <option value="Verbraucht" ${r.status === "Verbraucht" ? "selected" : ""}>Verbraucht</option>
+  <option value="Nicht freigegeben" ${r.status === "Nicht freigegeben" ? "selected" : ""}>
+    Nicht freigegeben
+  </option>
+
+  <option value="Test notwendig" ${r.status === "Test notwendig" ? "selected" : ""}>
+    Test notwendig
+  </option>
+
+  <option value="Im Lager" ${r.status === "Im Lager" ? "selected" : ""}>
+    Im Lager
+  </option>
+
+  <option value="Electrotherm" ${r.status === "Electrotherm" ? "selected" : ""}>
+    Electrotherm
+  </option>
+
+  <option value="Verbraucht" ${r.status === "Verbraucht" ? "selected" : ""}>
+    Verbraucht
+  </option>
 </select>
 
       <label>Bemerkung</label>
