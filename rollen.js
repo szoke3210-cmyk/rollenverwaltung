@@ -211,6 +211,9 @@ if (!typFilter && isAdmin) {
   <option value="Nicht freigegeben">Nicht freigegeben</option>
   <option value="Im Lager">Im Lager</option>
   <option value="Verbraucht">Verbraucht</option>
+  <option value="Test notwendig">
+  Test notwendig
+</option>
 </select>
     <textarea id="newBemerkung" placeholder="Bemerkung"></textarea>
     <button class="green" onclick="neueRolle()">➕ Neue Rolle speichern</button>
@@ -1050,6 +1053,9 @@ if (filter === "nichtfrei") {
 if (filter === "archiv") {
   rollen = rollen.filter(r => r.status === "Verbraucht");
 }
+  if (statusFilter === "test") {
+  query += "&status=eq.Test notwendig";
+}
   let html = `
     <div class="box">
       <h2>Rolle bearbeiten</h2>
@@ -1059,6 +1065,9 @@ if (filter === "archiv") {
   <option value="nichtfrei" ${filter === "nichtfrei" ? "selected" : ""}>Nicht freigegeben</option>
   <option value="archiv" ${filter === "archiv" ? "selected" : ""}>Archivierte Rollen</option>
   <option value="alle" ${filter === "alle" ? "selected" : ""}>Alle Rollen</option>
+  <option value="test">
+  Test notwendig
+</option>
 </select>
 
       <select id="rolleSelect" onchange="loadRolleEditor()">
