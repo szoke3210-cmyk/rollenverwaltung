@@ -1280,7 +1280,7 @@ location.reload();
 
 
 async function deleteRolle(id) {
-  if (!confirm("Diese Rolle wirklich löschen? Die Historie wird auch gelöscht.")) return;
+  if (!confirm("Diese Rolle wirklich löschen? Die Historie bleibt erhalten.")) return;
 
   const daten = await api("rollen?id=eq." + id + "&select=*");
 
@@ -1296,10 +1296,6 @@ async function deleteRolle(id) {
     rolle.kennung,
     `Typ: ${rolle.typ}, Status: ${rolle.status}, Länge: ${rolle.aktuelle_laenge} m`
   );
-
-  await api("historie?rollen_id=eq." + id, {
-    method: "DELETE"
-  });
 
   await api("rollen?id=eq." + id, {
     method: "DELETE"
