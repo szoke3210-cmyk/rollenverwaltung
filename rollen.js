@@ -398,7 +398,7 @@ async function neueRolle() {
     urspruengliche_laenge: laenge,
     aktuelle_laenge: laenge,
     status: document.getElementById("newStatus").value,
-    bemerkung
+bemerkung
   })
 });
 
@@ -418,17 +418,15 @@ if (data.length) {
   });
 }
 
-  await logAktion(
-    "Neue Rolle erstellt",
-    kennung,
-    `Typ: ${typ}, Länge: ${laenge} m`
-  );
-}
+await logAktion(
+  "Neue Rolle erstellt",
+  kennung,
+  `Typ: ${typ}, Länge: ${laenge} m`
+);
 
-  alert("Rolle gespeichert");
-  location.reload();
+alert("Rolle gespeichert");
+location.reload();
 }
-
 
 async function markRolleVerbraucht(id) {
   if (!confirm("Diese Rolle als verbraucht markieren?")) {
