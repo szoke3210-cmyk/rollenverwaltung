@@ -1038,42 +1038,65 @@ async function showAuswahl() {
   const editId = new URLSearchParams(window.location.search).get("id");
 
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
-    const filter = localStorage.getItem("rolleFilter") || "aktiv";
+  const filter = localStorage.getItem("rolleFilter") || "aktiv";
 
-if (filter === "aktiv") {
-  rollen = rollen.filter(r =>
-    r.status === "Im Lager" || r.status === "Electrotherm"
-  );
-}
+  if (filter === "aktiv") {
+    rollen = rollen.filter(r =>
+      r.status === "Im Lager" ||
+      r.status === "Electrotherm"
+    );
+  }
 
-if (filter === "nichtfrei") {
-  rollen = rollen.filter(r => r.status === "Nicht freigegeben");
-}
+  if (filter === "nichtfrei") {
+    rollen = rollen.filter(r =>
+      r.status === "Nicht freigegeben"
+    );
+  }
 
-if (filter === "archiv") {
-  rollen = rollen.filter(r => r.status === "Verbraucht");
-}
-  if (statusFilter === "test") {
-  query += "&status=eq.Test notwendig";
-}
+  if (filter === "archiv") {
+    rollen = rollen.filter(r =>
+      r.status === "Verbraucht"
+    );
+  }
+
+  if (filter === "test") {
+    rollen = rollen.filter(r =>
+      r.status === "Test notwendig"
+    );
+  }
+
   let html = `
     <div class="box">
       <h2>Rolle bearbeiten</h2>
+
       <label>Ansicht</label>
-<select id="rolleFilter" onchange="changeRolleFilter()">
-  <option value="aktiv" ${filter === "aktiv" ? "selected" : ""}>Aktive Rollen</option>
-  <option value="nichtfrei" ${filter === "nichtfrei" ? "selected" : ""}>Nicht freigegeben</option>
-  <option value="archiv" ${filter === "archiv" ? "selected" : ""}>Archivierte Rollen</option>
-  <option value="alle" ${filter === "alle" ? "selected" : ""}>Alle Rollen</option>
-  <option value="test">
-  Test notwendig
-</option>
-</select>
+
+      <select id="rolleFilter" onchange="changeRolleFilter()">
+        <option value="aktiv" ${filter === "aktiv" ? "selected" : ""}>
+          Aktive Rollen
+        </option>
+
+        <option value="nichtfrei" ${filter === "nichtfrei" ? "selected" : ""}>
+          Nicht freigegeben
+        </option>
+
+        <option value="archiv" ${filter === "archiv" ? "selected" : ""}>
+          Archivierte Rollen
+        </option>
+
+        <option value="test" ${filter === "test" ? "selected" : ""}>
+          Test notwendig
+        </option>
+
+        <option value="alle" ${filter === "alle" ? "selected" : ""}>
+          Alle Rollen
+        </option>
+      </select>
 
       <select id="rolleSelect" onchange="loadRolleEditor()">
         <option value="">Rolle auswählen...</option>
   `;
-
+  
   rollen.forEach(r => {
     html += `
       <option value="${r.id}">
