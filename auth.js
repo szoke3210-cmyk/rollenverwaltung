@@ -201,13 +201,15 @@ async function loadUserRole() {
 
     currentUserRole = role;
     isAdmin = role === "admin";
+    localStorage.setItem("savelineUserRole", role);
 
     console.log("Benutzerrolle:", currentUserRole);
   } catch (error) {
     console.error("Fehler beim Laden der Benutzerrolle:", error);
 
-    isAdmin = false;
-    currentUserRole = "user";
+    const cachedRole = localStorage.getItem("savelineUserRole") || "user";
+    currentUserRole = cachedRole;
+    isAdmin = cachedRole === "admin";
   }
 }
 
