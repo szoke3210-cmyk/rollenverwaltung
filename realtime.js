@@ -83,14 +83,15 @@
   }
 
   async function handleChange(table, payload) {
-    try {
-      console.log(
-        `Realtime Änderung in ${table}:`,
-        payload
-      );
+  console.log(
+    "LIVE ADATVÁLTOZÁS:",
+    table,
+    payload.eventType,
+    payload
+  );
 
-      const result =
-        await window.SavelineOffline?.applyRealtimeChange(
+  try {
+    const result = await window.SavelineOffline?.applyRealtimeChange(
           table,
           payload.eventType,
           payload.new,
