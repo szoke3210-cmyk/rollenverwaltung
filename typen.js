@@ -172,23 +172,21 @@ async function renameTyp(altTyp) {
 async function deleteTyp(typ) {
   const bestaetigt = confirm(
     `Typ "${typ}" wirklich löschen?\n\n` +
-    `Alle Rollen dieses Typs werden ebenfalls gelöscht.\n` +
-    `Die Historie und Statistik bleiben erhalten.`
+    `Alle Rollen dieses Typs werden gelöscht.\n` +
+    `Die Historie bleibt erhalten.`
   );
 
-  if (!bestaetigt) {
-    return;
-  }
+  if (!bestaetigt) return;
 
   try {
-    // Megnézzük, mely Rollen tartoznak a típushoz
+    // 1. Rollen lekérése
     const rollen = await api(
       "rollen?typ=eq." +
       encodeURIComponent(typ) +
       "&select=id,kennung"
     );
 
-    // A Rollen törlése
+    // 2. Rollen törlése
     if (rollen.length > 0) {
       await api(
         "rollen?typ=eq." + encodeURIComponent(typ),
@@ -198,7 +196,7 @@ async function deleteTyp(typ) {
       );
     }
 
-    // Maga a típus törlése a typen táblából
+    // 3. Típus törlése
     await api(
       "typen?typ=eq." + encodeURIComponent(typ),
       {
@@ -206,25 +204,48 @@ async function deleteTyp(typ) {
       }
     );
 
+    // 4. Ellenőrzés, hogy tényleg eltűnt-e
+    const kontrolle = await api(
+      "typen?typ=eq." +
+      encodeURIComponent(typ) +
+      "&select=id,typ"
+    );
+
+    if (kontrolle.length > 0) {
+      console.error(
+        "Typ wurde nicht gelöscht:",
+        kontrolle
+      );
+
+      alert(
+        "Die Rollen wurden gelöscht, aber der Typ konnte nicht gelöscht werden.\n\n" +
+        "Bitte prüfe die DELETE-Policy der Tabelle typen."
+      );
+
+      return;
+    }
+
     await logAktion(
       "Typ gelöscht",
       "",
-      `Typ: ${typ}, gelöschte Rollen: ${rollen.length}`
+      `Typ: ${typ}, Rollen gelöscht: ${rollen.length}`
     );
 
     alert(
-      `Typ gelöscht.\n` +
-      `${rollen.length} Rolle(n) wurden gelöscht.\n` +
-      `Die Historie bleibt erhalten.`
+      `Typ "${typ}" wurde gelöscht.\n` +
+      `${rollen.length} Rolle(n) wurden gelöscht.`
     );
 
     location.href = "index.html";
 
   } catch (error) {
-    console.error("Fehler beim Löschen des Typs:", error);
+    console.error(
+      "Fehler beim Löschen des Typs:",
+      error
+    );
 
     alert(
-      "Typ konnte nicht vollständig gelöscht werden:\n" +
+      "Fehler beim Löschen:\n" +
       (error.message || error)
     );
   }
