@@ -170,32 +170,35 @@ async function renameTyp(altTyp) {
 
 
 async function deleteTyp(typ) {
+  const bestaetigt = confirm(
+    `Typ "${typ}" wirklich löschen?\n\n` +
+    `Alle Rollen dieses Typs werden ebenfalls gelöscht.\n` +
+    `Die Historie und Statistik bleiben erhalten.`
+  );
+
+  if (!bestaetigt) {
+    return;
+  }
+
   try {
+    // Megnézzük, mely Rollen tartoznak a típushoz
     const rollen = await api(
       "rollen?typ=eq." +
       encodeURIComponent(typ) +
       "&select=id,kennung"
     );
 
+    // A Rollen törlése
     if (rollen.length > 0) {
-      alert(
-        "Dieser Typ kann nicht gelöscht werden.\n\n" +
-        "Es gibt noch " +
-        rollen.length +
-        " Rolle(n) mit diesem Typ.\n\n" +
-        "Ändere zuerst den Typ dieser Rollen oder lösche sie."
+      await api(
+        "rollen?typ=eq." + encodeURIComponent(typ),
+        {
+          method: "DELETE"
+        }
       );
-      return;
     }
 
-    const bestaetigt = confirm(
-      `Typ "${typ}" wirklich löschen?`
-    );
-
-    if (!bestaetigt) {
-      return;
-    }
-
+    // Maga a típus törlése a typen táblából
     await api(
       "typen?typ=eq." + encodeURIComponent(typ),
       {
@@ -206,21 +209,23 @@ async function deleteTyp(typ) {
     await logAktion(
       "Typ gelöscht",
       "",
-      `Typ: ${typ}`
-    );
-
-    alert("Typ gelöscht");
-    location.reload();
-
-  } catch (error) {
-    console.error(
-      "Fehler beim Löschen des Typs:",
-      error
+      `Typ: ${typ}, gelöschte Rollen: ${rollen.length}`
     );
 
     alert(
-      "Typ konnte nicht gelöscht werden: " +
-      error.message
+      `Typ gelöscht.\n` +
+      `${rollen.length} Rolle(n) wurden gelöscht.\n` +
+      `Die Historie bleibt erhalten.`
+    );
+
+    location.href = "index.html";
+
+  } catch (error) {
+    console.error("Fehler beim Löschen des Typs:", error);
+
+    alert(
+      "Typ konnte nicht vollständig gelöscht werden:\n" +
+      (error.message || error)
     );
   }
 }
