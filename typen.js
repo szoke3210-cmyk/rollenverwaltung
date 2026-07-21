@@ -89,17 +89,16 @@ async function loadTypEditor() {
       <p>Meter: ${meter.toFixed(2)} m</p>
 
       <label>Neuer Typname</label>
-      <input id="newTypName" value="${typ}">
+<input id="editTypName" value="${typ}">
 
-      <label>ArtN.</label>
-      <input id="editArtikel" value="${artikel}">
+<label>ArtN.</label>
+<input id="editArtikel" value="${artikel}">
 
-      <br><br>
+<br><br>
 
-      <button onclick="renameTyp('${typ}')">
-        💾 Speichern
-      </button>
-
+<button onclick="renameTyp('${typ}')">
+  💾 Speichern
+</button>
       <button
         onclick="deleteTyp('${typ}')"
         style="background:#dc3545;"
@@ -113,7 +112,7 @@ async function loadTypEditor() {
 
 async function renameTyp(altTyp) {
   const neuerTyp = document
-    .getElementById("newTypName")
+    .getElementById("editTypName")
     .value
     .trim();
 
@@ -128,7 +127,6 @@ async function renameTyp(altTyp) {
   }
 
   try {
-    // Típusnév és ArtN. módosítása a typen táblában
     await api(
       "typen?typ=eq." + encodeURIComponent(altTyp),
       {
@@ -140,7 +138,6 @@ async function renameTyp(altTyp) {
       }
     );
 
-    // A hozzá tartozó Rollen típusnevének módosítása
     if (neuerTyp !== altTyp) {
       await api(
         "rollen?typ=eq." + encodeURIComponent(altTyp),
@@ -164,7 +161,11 @@ async function renameTyp(altTyp) {
 
   } catch (error) {
     console.error("Fehler beim Ändern des Typs:", error);
-    alert("Typ konnte nicht geändert werden");
+
+    alert(
+      "Typ konnte nicht geändert werden:\n" +
+      (error.message || error)
+    );
   }
 }
 
