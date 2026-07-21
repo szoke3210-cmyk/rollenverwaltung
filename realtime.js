@@ -94,9 +94,26 @@
     payload
   );
 
-  scheduleRefresh();
-}
+  try {
+    const result = await window.SavelineOffline?.applyRealtimeChange(
+      table,
+      payload.eventType,
+      payload.new,
+      payload.old
+    );
 
+    if (result?.reason === "pending-local-change") {
+      return;
+    }
+
+    scheduleRefresh();
+  } catch (error) {
+    console.warn(
+      `Realtime-Verarbeitung für ${table} fehlgeschlagen:`,
+      error
+    );
+  }
+}
   async function start() {
     if (
       started ||
