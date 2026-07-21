@@ -59,25 +59,52 @@ async function loadTypEditor() {
     return;
   }
 
-  const rollen = await api("rollen?typ=eq." + encodeURIComponent(typ) + "&select=*");
+  const rollen = await api(
+    "rollen?typ=eq." +
+    encodeURIComponent(typ) +
+    "&select=*"
+  );
 
-  const meter = rollen.reduce((sum, r) => sum + Number(r.aktuelle_laenge), 0);
+  const typDaten = await api(
+    "typen?typ=eq." +
+    encodeURIComponent(typ) +
+    "&select=*"
+  );
+
+  const meter = rollen.reduce(
+    (sum, r) => sum + Number(r.aktuelle_laenge),
+    0
+  );
+
+  const artikel =
+    typDaten.length > 0
+      ? (typDaten[0].artikel || "")
+      : "";
 
   document.getElementById("typEditor").innerHTML = `
     <div class="box">
       <h3>${typ}</h3>
+
       <p>Rollen: ${rollen.length}</p>
       <p>Meter: ${meter.toFixed(2)} m</p>
 
       <label>Neuer Typname</label>
       <input id="newTypName" value="${typ}">
 
+      <label>ArtN.</label>
+      <input id="editArtikel" value="${artikel}">
+
+      <br><br>
+
       <button onclick="renameTyp('${typ}')">
-        Typ umbenennen
+        💾 Speichern
       </button>
 
-      <button onclick="deleteTyp('${typ}')" style="background:#dc3545;">
-        Typ löschen
+      <button
+        onclick="deleteTyp('${typ}')"
+        style="background:#dc3545;"
+      >
+        🗑️ Typ löschen
       </button>
     </div>
   `;
@@ -85,22 +112,60 @@ async function loadTypEditor() {
 
 
 async function renameTyp(altTyp) {
-  const neuerTyp = document.getElementById("newTypName").value.trim();
+  const neuerTyp = document
+    .getElementById("newTypName")
+    .value
+    .trim();
+
+  const neuerArtikel = document
+    .getElementById("editArtikel")
+    .value
+    .trim();
 
   if (!neuerTyp) {
     alert("Neuen Typ eingeben.");
     return;
   }
 
-  await api("rollen?typ=eq." + encodeURIComponent(altTyp), {
-    method: "PATCH",
-    body: JSON.stringify({
-      typ: neuerTyp
-    })
-  });
+  try {
+    // Típusnév és ArtN. módosítása a typen táblában
+    await api(
+      "typen?typ=eq." + encodeURIComponent(altTyp),
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          typ: neuerTyp,
+          artikel: neuerArtikel
+        })
+      }
+    );
 
-  alert("Typ geändert");
-  location.reload();
+    // A hozzá tartozó Rollen típusnevének módosítása
+    if (neuerTyp !== altTyp) {
+      await api(
+        "rollen?typ=eq." + encodeURIComponent(altTyp),
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            typ: neuerTyp
+          })
+        }
+      );
+    }
+
+    await logAktion(
+      "Typ geändert",
+      "",
+      `Alt: ${altTyp}, Neu: ${neuerTyp}, ArtN.: ${neuerArtikel || "-"}`
+    );
+
+    alert("Typ und ArtN. geändert");
+    location.reload();
+
+  } catch (error) {
+    console.error("Fehler beim Ändern des Typs:", error);
+    alert("Typ konnte nicht geändert werden");
+  }
 }
 
 
