@@ -1,5 +1,12 @@
 (function () {
-  const TABLES = ["rollen", "kunden", "historie", "qr_bemerkungen", "aktivitaet"];
+  const TABLES = [
+  "rollen",
+  "typen",
+  "kunden",
+  "historie",
+  "qr_bemerkungen",
+  "aktivitaet"
+];
   let channel = null;
   let refreshTimer = null;
   let started = false;
@@ -12,7 +19,13 @@
 
   function canRefreshCurrentView() {
     if (document.visibilityState !== "visible" || hasEditingFocus()) return false;
-    if (page === "scanner" || page === "auswahl" || page === "kunden" || page === "typen") return false;
+    if (
+  page === "scanner" ||
+  page === "auswahl" ||
+  page === "kunden"
+) {
+  return false;
+}
     return true;
   }
 
@@ -20,10 +33,17 @@
     if (!navigator.onLine || !canRefreshCurrentView()) return;
 
     try {
-      if (page === "statistik") await showStatistik();
-      else if (page === "aktivitaet") await showAktivitaet();
-      else if (kennung) await showDetail();
-      else await showList();
+      if (page === "statistik") {
+  await showStatistik();
+} else if (page === "aktivitaet") {
+  await showAktivitaet();
+} else if (page === "typen") {
+  await showTypen();
+} else if (kennung) {
+  await showDetail();
+} else {
+  await showList();
+}
     } catch (error) {
       console.warn("Live-Aktualisierung der Ansicht fehlgeschlagen:", error);
     }
@@ -67,16 +87,32 @@
       );
     }
 
-    channel.subscribe((status, error) => {
-      console.log("Saveline Realtime:", status, error || "");
-      if (status === "SUBSCRIBED") {
-        window.SavelineOffline?.updateConnectionStatus("Online · Live");
-      } else if (["CHANNEL_ERROR", "TIMED_OUT"].includes(status)) {
-        started = false;
-        window.SavelineOffline?.updateConnectionStatus("Online · Live-Verbindung gestört");
-      }
-    });
+   channel.subscribe((status, error) => {
+  console.log("Saveline Realtime:", status, error || "");
+
+  if (status === "SUBSCRIBED") {
+    window.SavelineOffline?.updateConnectionStatus(
+      "Online · Live"
+    );
+    return;
   }
+
+  if (
+    status === "CHANNEL_ERROR" ||
+    status === "TIMED_OUT"
+  ) {
+    started = false;
+
+    window.SavelineOffline?.updateConnectionStatus(
+      "Online · Live-Verbindung gestört"
+    );
+
+    setTimeout(async () => {
+      await stop();
+      await start();
+    }, 3000);
+  }
+});
 
   async function stop() {
     started = false;
