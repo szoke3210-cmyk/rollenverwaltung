@@ -1,8 +1,27 @@
 async function showTypen() {
-  const rollen = await api("rollen?select=*");
-  let typen = [...new Set(rollen.map(r => r.typ))].sort();
+  const typenDaten = await api("typen?select=*&order=typ.asc");
+
+  const typen = typenDaten
+    .map(t => t.typ)
+    .filter(Boolean);
 
   let html = `
+    <div class="box">
+      <h3>Neuer Typ</h3>
+
+      <label>Typ</label>
+      <input id="newTypName">
+
+      <label>ArtN.</label>
+      <input id="newTypArtikel">
+
+      <br><br>
+
+      <button onclick="addTyp()">
+        ➕ Typ hinzufügen
+      </button>
+    </div>
+
     <div class="box">
       <h2>Typen verwalten</h2>
 
@@ -11,7 +30,11 @@ async function showTypen() {
   `;
 
   typen.forEach(t => {
-    html += `<option value="${t}">${t}</option>`;
+    html += `
+      <option value="${t}">
+        ${t}
+      </option>
+    `;
   });
 
   html += `
@@ -27,7 +50,6 @@ async function showTypen() {
 
   document.getElementById("app").innerHTML = html;
 }
-
 
 async function loadTypEditor() {
   const typ = document.getElementById("typSelect").value;
@@ -103,3 +125,40 @@ function typWechsel() {
   input.style.display = select.value === "__neu" ? "block" : "none";
 }
 
+async function addTyp() {
+
+  const typ = document.getElementById("newTypName").value.trim();
+  const artikel = document.getElementById("newTypArtikel").value.trim();
+
+  if (!typ) {
+    alert("Typ eingeben");
+    return;
+  }
+
+  const vorhanden = await api(
+    "typen?typ=eq." + encodeURIComponent(typ)
+  );
+
+  if (vorhanden.length) {
+    alert("Typ existiert bereits");
+    return;
+  }
+
+  await api("typen", {
+    method: "POST",
+    body: JSON.stringify({
+      typ: typ,
+      artikel: artikel
+    })
+  });
+
+  await logAktion(
+    "Typ hinzugefügt",
+    "",
+    typ
+  );
+
+  alert("Typ gespeichert");
+
+  location.reload();
+}
