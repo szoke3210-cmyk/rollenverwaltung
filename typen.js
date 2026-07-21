@@ -170,19 +170,60 @@ async function renameTyp(altTyp) {
 
 
 async function deleteTyp(typ) {
-  if (!confirm("Diesen Typ wirklich löschen? Alle Rollen dieses Typs werden gelöscht.")) return;
+  try {
+    const rollen = await api(
+      "rollen?typ=eq." +
+      encodeURIComponent(typ) +
+      "&select=id,kennung"
+    );
 
-  const rollen = await api("rollen?typ=eq." + encodeURIComponent(typ) + "&select=id");
+    if (rollen.length > 0) {
+      alert(
+        "Dieser Typ kann nicht gelöscht werden.\n\n" +
+        "Es gibt noch " +
+        rollen.length +
+        " Rolle(n) mit diesem Typ.\n\n" +
+        "Ändere zuerst den Typ dieser Rollen oder lösche sie."
+      );
+      return;
+    }
 
-  for (const r of rollen) {
-    await api("historie?rollen_id=eq." + r.id, { method: "DELETE" });
-    await api("rollen?id=eq." + r.id, { method: "DELETE" });
+    const bestaetigt = confirm(
+      `Typ "${typ}" wirklich löschen?`
+    );
+
+    if (!bestaetigt) {
+      return;
+    }
+
+    await api(
+      "typen?typ=eq." + encodeURIComponent(typ),
+      {
+        method: "DELETE"
+      }
+    );
+
+    await logAktion(
+      "Typ gelöscht",
+      "",
+      `Typ: ${typ}`
+    );
+
+    alert("Typ gelöscht");
+    location.reload();
+
+  } catch (error) {
+    console.error(
+      "Fehler beim Löschen des Typs:",
+      error
+    );
+
+    alert(
+      "Typ konnte nicht gelöscht werden: " +
+      error.message
+    );
   }
-
-  alert("Typ und alle Rollen gelöscht");
-  location.href = "index.html";
 }
-
 
 function typWechsel() {
   const select = document.getElementById("typSelect");
