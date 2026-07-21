@@ -27,52 +27,56 @@
   }
 
   function canRefreshCurrentView() {
-    if (
-      document.visibilityState !== "visible" ||
-      hasEditingFocus()
-    ) {
-      return false;
-    }
-
-    if (
-      page === "scanner" ||
-      page === "auswahl" ||
-      page === "kunden"
-    ) {
-      return false;
-    }
-
-    return true;
+  if (document.visibilityState !== "visible") {
+    return false;
   }
 
+  if (page === "scanner") {
+    return false;
+  }
+
+  return true;
+}
+  
   async function refreshCurrentView() {
-    if (
-      !navigator.onLine ||
-      !canRefreshCurrentView()
-    ) {
-      return;
-    }
-
-    try {
-      if (page === "statistik") {
-        await showStatistik();
-      } else if (page === "aktivitaet") {
-        await showAktivitaet();
-      } else if (page === "typen") {
-        await showTypen();
-      } else if (kennung) {
-        await showDetail();
-      } else {
-        await showList();
-      }
-    } catch (error) {
-      console.warn(
-        "Live-Aktualisierung der Ansicht fehlgeschlagen:",
-        error
-      );
-    }
+  if (!navigator.onLine) {
+    return;
   }
 
+  console.log(
+    "LIVE OLDALFRISSÍTÉS:",
+    {
+      page,
+      kennung,
+      visible: document.visibilityState
+    }
+  );
+
+  try {
+    if (page === "statistik") {
+      await showStatistik();
+    } else if (page === "aktivitaet") {
+      await showAktivitaet();
+    } else if (page === "typen") {
+      await showTypen();
+    } else if (page === "auswahl") {
+      await showAuswahl();
+    } else if (page === "kunden") {
+      await showKunden();
+    } else if (kennung) {
+      await showDetail();
+    } else {
+      await showList();
+    }
+
+    console.log("LIVE OLDAL FRISSÍTVE");
+  } catch (error) {
+    console.error(
+      "Live-Aktualisierung der Ansicht fehlgeschlagen:",
+      error
+    );
+  }
+}
   function scheduleRefresh() {
     clearTimeout(refreshTimer);
 
