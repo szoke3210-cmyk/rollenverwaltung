@@ -73,12 +73,23 @@ async function showList() {
     );
   }
 
-  let alle = await api("rollen?select=*");
-  let typen = {};
+    // Minden Rolle lekérése a számláláshoz
+  const alle = await api("rollen?select=*");
 
-  alle.forEach(r => {
-  if (!typen[r.typ]) {
-    typen[r.typ] = {
+  // Minden külön létrehozott típus lekérése
+  const typenDaten = await api(
+    "typen?select=typ,artikel&order=typ.asc"
+  );
+
+  const typen = {};
+
+  // Először minden típust létrehozunk a typen táblából.
+  // Így akkor is megjelenik a buborék, ha még nincs hozzá Rolle.
+  typenDaten.forEach(t => {
+    if (!t.typ) return;
+
+    typen[t.typ] = {
+      artikel: t.artikel || "",
       count: 0,
       meter: 0,
       lager: 0,
@@ -87,40 +98,70 @@ async function showList() {
       testNotwendig: 0,
       verbraucht: 0
     };
-  }
+  });
 
- if (r.status !== "Verbraucht") {
-  typen[r.typ].count++;
-}
-  if (
-  r.status !== "Verbraucht" &&
-  r.status !== "Archiviert"
-) {
-  typen[r.typ].meter += Number(r.aktuelle_laenge) || 0;
-}
+  // Ezután hozzászámoljuk a Rolle adatokat
+  alle.forEach(r => {
+    if (!r.typ) return;
 
-  if (r.status === "Im Lager") {
-    typen[r.typ].lager++;
-  }
+    // Biztonsági megoldás:
+    // ha egy régi Rolle típusa még nincs a typen táblában,
+    // akkor se tűnjön el.
+    if (!typen[r.typ]) {
+      typen[r.typ] = {
+        artikel: "",
+        count: 0,
+        meter: 0,
+        lager: 0,
+        electro: 0,
+        nichtFreigegeben: 0,
+        testNotwendig: 0,
+        verbraucht: 0
+      };
+    }
 
-  if (r.status === "Electrotherm") {
-    typen[r.typ].electro++;
-  }
+    if (r.status !== "Verbraucht") {
+      typen[r.typ].count++;
+    }
 
-  if (r.status === "Nicht freigegeben") {
-    typen[r.typ].nichtFreigegeben++;
-  }
+    if (
+      r.status !== "Verbraucht" &&
+      r.status !== "Archiviert"
+    ) {
+      typen[r.typ].meter +=
+        Number(r.aktuelle_laenge) || 0;
+    }
 
-  if (r.status === "Test notwendig") {
-    typen[r.typ].testNotwendig++;
-  }
+    if (r.status === "Im Lager") {
+      typen[r.typ].lager++;
+    }
 
-  if (r.status === "Verbraucht") {
-    typen[r.typ].verbraucht++;
-  }
-});
+    if (r.status === "Electrotherm") {
+      typen[r.typ].electro++;
+    }
 
-  let typOptions = Object.keys(typen).sort().map(t => `<option value="${t}">${t}</option>`).join("");
+    if (r.status === "Nicht freigegeben") {
+      typen[r.typ].nichtFreigegeben++;
+    }
+
+    if (r.status === "Test notwendig") {
+      typen[r.typ].testNotwendig++;
+    }
+
+    if (r.status === "Verbraucht") {
+      typen[r.typ].verbraucht++;
+    }
+  });
+
+  // Az új Rolle típuslistája is a typen táblából készül
+  const typOptions = Object.keys(typen)
+    .sort((a, b) => a.localeCompare(b, "de"))
+    .map(t => `
+      <option value="${t}">
+        ${t}
+      </option>
+    `)
+    .join("");
 
   let html = ``;
 
@@ -188,34 +229,46 @@ html += `
   
 if (!typFilter) {
   Object.keys(typen).sort().forEach(t => {
+    const farben = getTypFarben(t);
 
-  const farben = getTypFarben(t);
-
-  html += `
+    html += `
       <div
-  class="box"
-  onclick="location.href='?typ=${encodeURIComponent(t)}'"
-  style="
-    background: linear-gradient(90deg, ${farben[0]} 50%, ${farben[1]} 50%);
-    cursor:pointer;
-  "
->
-  <div style="
-      background:rgba(255,255,255,0.92);
-      border-radius:12px;
-      padding:12px;
-      color:#111;
-  ">
-      <h3>${t}</h3>
+        class="box"
+        onclick="location.href='?typ=${encodeURIComponent(t)}'"
+        style="
+          background: linear-gradient(90deg, ${farben[0]} 50%, ${farben[1]} 50%);
+          cursor: pointer;
+        "
+      >
+        <div style="
+          background: rgba(255,255,255,0.92);
+          border-radius: 12px;
+          padding: 12px;
+          color: #111;
+        ">
+          <h3>${t}</h3>
 
-      <div class="big">${typen[t].meter} m</div>
+          ${typen[t].artikel ? `
+            <div style="
+              font-size: 14px;
+              font-weight: bold;
+              margin-top: -8px;
+              margin-bottom: 10px;
+            ">
+              ArtN.: ${typen[t].artikel}
+            </div>
+          ` : ""}
 
-      <p>${typen[t].count} Rollen insgesamt</p>
-<p>Im Lager: ${typen[t].lager}</p>
-<p>Nicht freigegeben: ${typen[t].nichtFreigegeben}</p>
-<p>Electrotherm: ${typen[t].electro}</p><p>Test notwendig: ${typen[t].testNotwendig}</p><p>Verbraucht: ${typen[t].verbraucht}</p>
-  </div>
-</div>
+          <div class="big">${typen[t].meter} m</div>
+
+          <p>${typen[t].count} Rollen insgesamt</p>
+          <p>Im Lager: ${typen[t].lager}</p>
+          <p>Nicht freigegeben: ${typen[t].nichtFreigegeben}</p>
+          <p>Electrotherm: ${typen[t].electro}</p>
+          <p>Test notwendig: ${typen[t].testNotwendig}</p>
+          <p>Verbraucht: ${typen[t].verbraucht}</p>
+        </div>
+      </div>
     `;
   });
 }
