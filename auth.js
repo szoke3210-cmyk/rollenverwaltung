@@ -335,16 +335,22 @@ async function updateOnlineStatus(login = false) {
     page = "Rolle: " + params.get("kennung");
   }
 
+  const body = {
+    user_id: currentUser.id,
+    email: currentUser.email,
+    aktuelle_seite: page,
+    last_seen: new Date().toISOString()
+  };
+
+  if (login) {
+    body.login_at = new Date().toISOString();
+  }
+
   await api("online_users", {
     method: "POST",
     headers: {
       Prefer: "resolution=merge-duplicates"
     },
-    body: JSON.stringify({
-      user_id: currentUser.id,
-      email: currentUser.email,
-      aktuelle_seite: page,
-      last_seen: new Date().toISOString()
-    })
+    body: JSON.stringify(body)
   });
 }
