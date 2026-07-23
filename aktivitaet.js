@@ -364,7 +364,7 @@ const gesamtAnzahl =
             : "Noch nie aktiv";
 
       html += `
-        <div
+                <div
           style="
             padding: 12px;
             margin: 8px 0;
@@ -393,39 +393,40 @@ const gesamtAnzahl =
           </div>
 
           ${
-  benutzer.aktuelle_seite
-    ? `
-      <div style="margin-top: 4px;">
-        Seite:
-        <strong>
-          ${escapeHtml(benutzer.aktuelle_seite)}
-        </strong>
-      </div>
-    `
-    : ""
-}
+            benutzer.aktuelle_seite
+              ? `
+                <div style="margin-top: 4px;">
+                  Seite:
+                  <strong>
+                    ${escapeHtml(benutzer.aktuelle_seite)}
+                  </strong>
+                </div>
+              `
+              : ""
+          }
 
-<div
-  style="
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #dbe3ed;
-  "
->
-  <div>
-    <strong>Heute:</strong>
-    ${heuteAnzahl} Aktionen
-  </div>
+          <div
+            style="
+              margin-top: 10px;
+              padding-top: 10px;
+              border-top: 1px solid #dbe3ed;
+            "
+          >
+            <div>
+              <strong>Heute:</strong>
+              ${heuteAnzahl} Aktionen
+            </div>
 
-  <div style="margin-top: 3px;">
-    <strong>Letzte 7 Tage:</strong>
-    ${siebenTageAnzahl} Aktionen
-  </div>
+            <div style="margin-top: 3px;">
+              <strong>Letzte 7 Tage:</strong>
+              ${siebenTageAnzahl} Aktionen
+            </div>
 
-  <div style="margin-top: 3px;">
-    <strong>Gesamt:</strong>
-    ${gesamtAnzahl} Aktionen
-  </div>
+            <div style="margin-top: 3px;">
+              <strong>Gesamt:</strong>
+              ${gesamtAnzahl} Aktionen
+            </div>
+          </div>
         </div>
       `;
     });
