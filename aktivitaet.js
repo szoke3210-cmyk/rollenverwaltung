@@ -299,7 +299,14 @@ async function showAktivitaet() {
   } else {
     const jetzt = Date.now();
 
-    onlineBenutzer.forEach(benutzer => {
+const heuteBeginn = new Date();
+heuteBeginn.setHours(0, 0, 0, 0);
+
+const siebenTageBeginn = new Date();
+siebenTageBeginn.setHours(0, 0, 0, 0);
+siebenTageBeginn.setDate(siebenTageBeginn.getDate() - 6);
+
+onlineBenutzer.forEach(benutzer => {
       const letzteAktivitaet =
         benutzer.last_seen
           ? new Date(benutzer.last_seen)
@@ -312,6 +319,38 @@ async function showAktivitaet() {
 
       const istOnline =
         differenz <= 90000;
+
+  const benutzerAktivitaeten =
+  alleAktivitaeten.filter(eintrag =>
+    eintrag.benutzer === benutzer.email
+  );
+
+const heuteAnzahl =
+  benutzerAktivitaeten.filter(eintrag => {
+    if (!eintrag.datum) return false;
+
+    const datum = new Date(eintrag.datum);
+
+    return (
+      !Number.isNaN(datum.getTime()) &&
+      datum >= heuteBeginn
+    );
+  }).length;
+
+const siebenTageAnzahl =
+  benutzerAktivitaeten.filter(eintrag => {
+    if (!eintrag.datum) return false;
+
+    const datum = new Date(eintrag.datum);
+
+    return (
+      !Number.isNaN(datum.getTime()) &&
+      datum >= siebenTageBeginn
+    );
+  }).length;
+
+const gesamtAnzahl =
+  benutzerAktivitaeten.length;
 
       const statusSymbol =
         istOnline ? "🟢" : "⚫";
@@ -354,17 +393,39 @@ async function showAktivitaet() {
           </div>
 
           ${
-            benutzer.aktuelle_seite
-              ? `
-                <div style="margin-top: 4px;">
-                  Seite:
-                  <strong>
-                    ${escapeHtml(benutzer.aktuelle_seite)}
-                  </strong>
-                </div>
-              `
-              : ""
-          }
+  benutzer.aktuelle_seite
+    ? `
+      <div style="margin-top: 4px;">
+        Seite:
+        <strong>
+          ${escapeHtml(benutzer.aktuelle_seite)}
+        </strong>
+      </div>
+    `
+    : ""
+}
+
+<div
+  style="
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dbe3ed;
+  "
+>
+  <div>
+    <strong>Heute:</strong>
+    ${heuteAnzahl} Aktionen
+  </div>
+
+  <div style="margin-top: 3px;">
+    <strong>Letzte 7 Tage:</strong>
+    ${siebenTageAnzahl} Aktionen
+  </div>
+
+  <div style="margin-top: 3px;">
+    <strong>Gesamt:</strong>
+    ${gesamtAnzahl} Aktionen
+  </div>
         </div>
       `;
     });
