@@ -296,11 +296,44 @@ async function startOnlineStatus() {
 async function updateOnlineStatus() {
   if (!currentUser) return;
 
-  const page =
-    new URLSearchParams(location.search).get("page") ||
-    (new URLSearchParams(location.search).get("kennung")
-      ? "Rolle"
-      : "Übersicht");
+  const params = new URLSearchParams(location.search);
+
+  let page = "Übersicht";
+
+  if (params.get("page")) {
+    switch (params.get("page")) {
+      case "scanner":
+        page = "QR Scanner";
+        break;
+
+      case "typen":
+        page = "Typen";
+        break;
+
+      case "auswahl":
+        page = "Rolle bearbeiten";
+        break;
+
+      case "kunden":
+        page = "Kunden";
+        break;
+
+      case "statistik":
+        page = "Statistik";
+        break;
+
+      case "aktivitaet":
+        page = "Aktivität";
+        break;
+
+      default:
+        page = "Übersicht";
+    }
+  }
+
+  if (params.get("kennung")) {
+    page = "Rolle: " + params.get("kennung");
+  }
 
   await api("online_users", {
     method: "POST",
