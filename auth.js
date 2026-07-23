@@ -155,20 +155,22 @@ async function initSupabaseSession() {
     }
 
     if (data?.session) {
-      accessToken = data.session.access_token;
-      currentUser = data.session.user;
+  accessToken = data.session.access_token;
+  currentUser = data.session.user;
 
-      localStorage.setItem("savelineCachedUser", JSON.stringify({
-        id: currentUser.id,
-        email: currentUser.email
-      }));
-      localStorage.setItem("savelineCachedAccessToken", accessToken);
+  localStorage.setItem("savelineCachedUser", JSON.stringify({
+    id: currentUser.id,
+    email: currentUser.email
+  }));
+  localStorage.setItem("savelineCachedAccessToken", accessToken);
 
-      await loadUserRole();
-      showLoggedInUser();
-      return true;
-    }
+  await loadUserRole();
+  showLoggedInUser();
 
+  startOnlineStatus();
+
+  return true;
+}
     if (useOfflineLogin()) return true;
 
     accessToken = null;
@@ -273,4 +275,43 @@ async function logoutUser() {
   currentUser = null;
 
   location.href = window.location.pathname;
+}
+
+let onlineStatusInterval = null;
+
+async function startOnlineStatus() {
+  if (!currentUser) return;
+
+  if (onlineStatusInterval) {
+    clearInterval(onlineStatusInterval);
+  }
+
+  await updateOnlineStatus();
+
+  onlineStatusInterval = setInterval(() => {
+    updateOnlineStatus();
+  }, 30000);
+}
+
+async function updateOnlineStatus() {
+  if (!currentUser) return;
+
+  const page =
+    new URLSearchParams(location.search).get("page") ||
+    (new URLSearchParams(location.search).get("kennung")
+      ? "Rolle"
+      : "Übersicht");
+
+  await api("online_users", {
+    method: "POST",
+    headers: {
+      Prefer: "resolution=merge-duplicates"
+    },
+    body: JSON.stringify({
+      user_id: currentUser.id,
+      email: currentUser.email,
+      aktuelle_seite: page,
+      last_seen: new Date().toISOString()
+    })
+  });
 }
