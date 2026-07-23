@@ -356,13 +356,14 @@ const gesamtAnzahl =
         istOnline ? "🟢" : "⚫";
 
       const statusText =
-        istOnline
-          ? "Online"
-          : letzteAktivitaet
-            ? "Zuletzt aktiv: " +
-              letzteAktivitaet.toLocaleString("de-DE")
-            : "Noch nie aktiv";
+  istOnline
+    ? "Online"
+    : "Offline";
 
+const zuletztAktivText =
+  letzteAktivitaet
+    ? letzteAktivitaet.toLocaleString("de-DE")
+    : "Noch nie aktiv";
       html += `
                 <div
           style="
@@ -382,16 +383,35 @@ const gesamtAnzahl =
           )"
         >
           <div>
-            <strong>
-              ${statusSymbol}
-              ${escapeHtml(benutzer.email || "Unbekannt")}
-            </strong>
-          </div>
+  <strong>
+    ${statusSymbol}
+    ${escapeHtml(benutzer.email || "Unbekannt")}
+  </strong>
+</div>
 
-          <div style="margin-top: 4px; color: #64748b;">
-            ${escapeHtml(statusText)}
-          </div>
+<div style="margin-top: 4px; color: #64748b;">
+  ${escapeHtml(statusText)}
+</div>
 
+<div style="margin-top: 4px; color: #64748b;">
+  Zuletzt aktiv:
+  <strong>
+    ${escapeHtml(zuletztAktivText)}
+  </strong>
+</div>
+
+${
+  benutzer.aktuelle_seite
+    ? `
+      <div style="margin-top: 4px;">
+        Seite:
+        <strong>
+          ${escapeHtml(benutzer.aktuelle_seite)}
+        </strong>
+      </div>
+    `
+    : ""
+}
           ${
             benutzer.aktuelle_seite
               ? `
