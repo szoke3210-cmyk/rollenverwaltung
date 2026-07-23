@@ -139,37 +139,29 @@ async function showAktivitaet() {
   }
 
   const alleAktivitaeten =
-    aktivitaetErgebnis.data || [];
+  aktivitaetErgebnis.data || [];
 
-  const onlineBenutzer =
-    onlineErgebnis.data || [];
+const onlineBenutzer =
+  onlineErgebnis.data || [];
 
-  const benutzerSet = new Set();
+const benutzerSet = new Set();
 
-  alleAktivitaeten.forEach(eintrag => {
-    if (eintrag.benutzer) {
-      benutzerSet.add(eintrag.benutzer);
-    }
-  });
+alleAktivitaeten.forEach(eintrag => {
+  if (eintrag.benutzer) {
+    benutzerSet.add(eintrag.benutzer);
+  }
+});
 
- benutzerListe.forEach(email => {
-  const benutzer =
-    onlineBenutzer.find(eintrag =>
-      eintrag.email === email
-    ) || {
-      email: email,
-      last_seen: null,
-      aktuelle_seite: null
-    };
-    if (benutzer.email) {
-      benutzerSet.add(benutzer.email);
-    }
-  });
+onlineBenutzer.forEach(benutzer => {
+  if (benutzer.email) {
+    benutzerSet.add(benutzer.email);
+  }
+});
 
-  const benutzerListe =
-    Array.from(benutzerSet).sort((a, b) =>
-      a.localeCompare(b)
-    );
+const benutzerListe =
+  Array.from(benutzerSet).sort((a, b) =>
+    a.localeCompare(b)
+  );
 
   const gefilterteAktivitaeten =
     alleAktivitaeten.filter(eintrag => {
