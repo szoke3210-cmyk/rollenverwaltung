@@ -152,7 +152,15 @@ async function showAktivitaet() {
     }
   });
 
-  onlineBenutzer.forEach(benutzer => {
+ benutzerListe.forEach(email => {
+  const benutzer =
+    onlineBenutzer.find(eintrag =>
+      eintrag.email === email
+    ) || {
+      email: email,
+      last_seen: null,
+      aktuelle_seite: null
+    };
     if (benutzer.email) {
       benutzerSet.add(benutzer.email);
     }
@@ -292,7 +300,7 @@ async function showAktivitaet() {
       <h3>👥 Benutzerstatus</h3>
   `;
 
-  if (onlineBenutzer.length === 0) {
+ if (benutzerListe.length === 0) {
     html += `
       <p>Noch keine Benutzerinformationen vorhanden.</p>
     `;
@@ -304,13 +312,24 @@ heuteBeginn.setHours(0, 0, 0, 0);
 
 const siebenTageBeginn = new Date();
 siebenTageBeginn.setHours(0, 0, 0, 0);
-siebenTageBeginn.setDate(siebenTageBeginn.getDate() - 6);
+siebenTageBeginn.setDate(
+  siebenTageBeginn.getDate() - 6
+);
 
-onlineBenutzer.forEach(benutzer => {
-      const letzteAktivitaet =
-        benutzer.last_seen
-          ? new Date(benutzer.last_seen)
-          : null;
+benutzerListe.forEach(email => {
+  const benutzer =
+    onlineBenutzer.find(eintrag =>
+      eintrag.email === email
+    ) || {
+      email: email,
+      last_seen: null,
+      aktuelle_seite: null
+    };
+
+  const letzteAktivitaet =
+    benutzer.last_seen
+      ? new Date(benutzer.last_seen)
+      : null;
 
       const differenz =
         letzteAktivitaet
@@ -352,8 +371,19 @@ const siebenTageAnzahl =
 const gesamtAnzahl =
   benutzerAktivitaeten.length;
 
-      const statusSymbol =
-        istOnline ? "🟢" : "⚫";
+      const statusPunkt = `
+  <span
+    style="
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: ${istOnline ? "#16a34a" : "#374151"};
+      vertical-align: middle;
+    "
+  ></span>
+`;
 
       const statusText =
   istOnline
@@ -384,8 +414,8 @@ const zuletztAktivText =
         >
           <div>
   <strong>
-    ${statusSymbol}
-    ${escapeHtml(benutzer.email || "Unbekannt")}
+    ${statusPunkt}
+${escapeHtml(benutzer.email || "Unbekannt")}
   </strong>
 </div>
 
@@ -399,19 +429,6 @@ const zuletztAktivText =
     ${escapeHtml(zuletztAktivText)}
   </strong>
 </div>
-
-${
-  benutzer.aktuelle_seite
-    ? `
-      <div style="margin-top: 4px;">
-        Seite:
-        <strong>
-          ${escapeHtml(benutzer.aktuelle_seite)}
-        </strong>
-      </div>
-    `
-    : ""
-}
           ${
             benutzer.aktuelle_seite
               ? `
