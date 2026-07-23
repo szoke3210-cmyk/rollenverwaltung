@@ -286,14 +286,14 @@ async function startOnlineStatus() {
     clearInterval(onlineStatusInterval);
   }
 
-  await updateOnlineStatus();
+  await updateOnlineStatus(true);
 
-  onlineStatusInterval = setInterval(() => {
-    updateOnlineStatus();
+  onlineStatusInterval = setInterval(async () => {
+    await updateOnlineStatus(false);
   }, 30000);
 }
 
-async function updateOnlineStatus() {
+async function updateOnlineStatus(login = false) {
   if (!currentUser) return;
 
   const params = new URLSearchParams(location.search);
