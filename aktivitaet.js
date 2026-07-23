@@ -48,9 +48,79 @@ async function showAktivitaet() {
     document.getElementById("app").innerHTML = `
       <div class="box">
         <h2>Kein Zugriff</h2>
+        <p>Diese Seite ist nur für Administratoren verfügbar.</p>
+
+        <button onclick="location.href='index.html'">
+          Zurück
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("app").innerHTML = `
+    <div class="box">
+      <h2>Aktivitätsprotokoll</h2>
+      <p>Wird geladen...</p>
+    </div>
+  `;
+
+  const heute = new Date();
+
+  const vorSiebenTagen = new Date();
+  vorSiebenTagen.setDate(heute.getDate() - 6);
+
+  const datumZuInput = datum => {
+    return (
+      datum.getFullYear() +
+      "-" +
+      String(datum.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(datum.getDate()).padStart(2, "0")
+    );
+  };
+
+  const gespeichertesVon =
+    sessionStorage.getItem("aktivitaetVon") ||
+    datumZuInput(vorSiebenTagen);
+
+  const gespeichertesBis =
+    sessionStorage.getItem("aktivitaetBis") ||
+    datumZuInput(heute);
+
+  const gespeicherterBenutzer =
+    sessionStorage.getItem("aktivitaetBenutzer") || "";
+
+  const [
+    aktivitaetErgebnis,
+    onlineErgebnis
+  ] = await Promise.all([
+    supabaseClient
+      .from("aktivitaet")
+      .select("*")
+      .order("datum", { ascending: false })
+      .limit(2000),
+
+    supabaseClient
+      .from("online_users")
+      .select("*")
+      .order("email", { ascending: true })
+  ]);
+
+  if (aktivitaetErgebnis.error) {
+    console.error(
+      "Fehler beim Laden der Aktivitäten:",
+      aktivitaetErgebnis.error
+    );
+
+    document.getElementById("app").innerHTML = `
+      <div class="box">
+        <h2>Aktivitätsprotokoll</h2>
+
+        <p>Fehler beim Laden:</p>
 
         <p>
-          Diese Seite ist nur für Administratoren verfügbar.
+          ${escapeHtml(aktivitaetErgebnis.error.message)}
         </p>
 
         <button onclick="location.href='index.html'">
@@ -58,230 +128,463 @@ async function showAktivitaet() {
         </button>
       </div>
     `;
-
     return;
   }
 
-  const gespeichertesDatum =
-    sessionStorage.getItem("aktivitaetDatum");
-
-  const heute = new Date();
-
-  const heuteText =
-    heute.getFullYear() +
-    "-" +
-    String(heute.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(heute.getDate()).padStart(2, "0");
-
-  const ausgewaehltesDatum =
-    gespeichertesDatum || heuteText;
-
-  document.getElementById("app").innerHTML = `
-    <div class="box">
-      <h2>Aktivitätsprotokoll</h2>
-
-      <label for="aktivitaetDatum">
-        Datum auswählen
-      </label>
-
-      <input
-        id="aktivitaetDatum"
-        type="date"
-        value="${ausgewaehltesDatum}"
-        onchange="changeAktivitaetDatum()"
-      >
-
-      <button onclick="showAktivitaet()">
-        Aktualisieren
-      </button>
-
-      <button onclick="location.href='index.html'">
-        Zur Übersicht
-      </button>
-    </div>
-
-    <div class="box">
-      <p>Aktivitäten werden geladen...</p>
-    </div>
-  `;
-
-  const [jahr, monat, tag] =
-    ausgewaehltesDatum.split("-").map(Number);
-
-  const startDatum = new Date(
-    jahr,
-    monat - 1,
-    tag,
-    0,
-    0,
-    0,
-    0
-  );
-
-  const endDatum = new Date(
-    jahr,
-    monat - 1,
-    tag + 1,
-    0,
-    0,
-    0,
-    0
-  );
-
-  const { data, error } = await supabaseClient
-    .from("aktivitaet")
-    .select("*")
-    .gte("datum", startDatum.toISOString())
-    .lt("datum", endDatum.toISOString())
-    .order("datum", { ascending: false });
-
-  if (error) {
+  if (onlineErgebnis.error) {
     console.error(
-      "Fehler beim Laden der Aktivitäten:",
-      error
+      "Fehler beim Laden der Benutzerstatus:",
+      onlineErgebnis.error
+    );
+  }
+
+  const alleAktivitaeten =
+    aktivitaetErgebnis.data || [];
+
+  const onlineBenutzer =
+    onlineErgebnis.data || [];
+
+  const benutzerSet = new Set();
+
+  alleAktivitaeten.forEach(eintrag => {
+    if (eintrag.benutzer) {
+      benutzerSet.add(eintrag.benutzer);
+    }
+  });
+
+  onlineBenutzer.forEach(benutzer => {
+    if (benutzer.email) {
+      benutzerSet.add(benutzer.email);
+    }
+  });
+
+  const benutzerListe =
+    Array.from(benutzerSet).sort((a, b) =>
+      a.localeCompare(b)
     );
 
-    document.getElementById("app").innerHTML = `
-      <div class="box">
-        <h2>Aktivitätsprotokoll</h2>
+  const gefilterteAktivitaeten =
+    alleAktivitaeten.filter(eintrag => {
+      if (!eintrag.datum) {
+        return false;
+      }
 
-        <label for="aktivitaetDatum">
-          Datum auswählen
-        </label>
+      const datum = new Date(eintrag.datum);
 
-        <input
-          id="aktivitaetDatum"
-          type="date"
-          value="${ausgewaehltesDatum}"
-          onchange="changeAktivitaetDatum()"
-        >
+      if (Number.isNaN(datum.getTime())) {
+        return false;
+      }
 
-        <p>
-          Fehler beim Laden:
-          ${escapeHtml(error.message)}
-        </p>
+      const lokalesDatum = datumZuInput(datum);
 
-        <button onclick="location.href='index.html'">
-          Zur Übersicht
-        </button>
-      </div>
-    `;
+      if (
+        gespeichertesVon &&
+        lokalesDatum < gespeichertesVon
+      ) {
+        return false;
+      }
 
-    return;
-  }
+      if (
+        gespeichertesBis &&
+        lokalesDatum > gespeichertesBis
+      ) {
+        return false;
+      }
 
-  const anzeigeDatum =
-    startDatum.toLocaleDateString("de-DE", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
+      if (
+        gespeicherterBenutzer &&
+        eintrag.benutzer !== gespeicherterBenutzer
+      ) {
+        return false;
+      }
+
+      return true;
     });
 
   let html = `
     <div class="box">
-      <h2>Aktivitätsprotokoll</h2>
+      <h2>📋 Aktivitätsprotokoll</h2>
 
-      <label for="aktivitaetDatum">
-        Datum auswählen
-      </label>
+      <div class="statistik-filter-grid">
 
-      <input
-        id="aktivitaetDatum"
-        type="date"
-        value="${ausgewaehltesDatum}"
-        onchange="changeAktivitaetDatum()"
-      >
+        <div>
+          <label for="aktivitaetVon">
+            Von
+          </label>
 
-      <button onclick="showAktivitaet()">
-        Aktualisieren
-      </button>
+          <input
+            id="aktivitaetVon"
+            type="date"
+            value="${escapeHtml(gespeichertesVon)}"
+          >
+        </div>
 
-      <button onclick="location.href='index.html'">
-        Zur Übersicht
-      </button>
-    </div>
+        <div>
+          <label for="aktivitaetBis">
+            Bis
+          </label>
 
-    <div class="box">
-      <h3>${escapeHtml(anzeigeDatum)}</h3>
+          <input
+            id="aktivitaetBis"
+            type="date"
+            value="${escapeHtml(gespeichertesBis)}"
+          >
+        </div>
 
-      <p>
-        ${data?.length || 0}
-        Aktivitäten an diesem Tag
-      </p>
+        <div>
+          <label for="aktivitaetBenutzer">
+            Benutzer
+          </label>
+
+          <select id="aktivitaetBenutzer">
+            <option value="">
+              Alle Benutzer
+            </option>
+
+            ${benutzerListe.map(email => `
+              <option
+                value="${escapeHtml(email)}"
+                ${
+                  email === gespeicherterBenutzer
+                    ? "selected"
+                    : ""
+                }
+              >
+                ${escapeHtml(email)}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+
+      </div>
+
+      <div class="button-row">
+        <button
+          class="green"
+          onclick="anwendenAktivitaetFilter()"
+        >
+          ✓ Filter anwenden
+        </button>
+
+        <button
+          class="secondary"
+          onclick="letzteSiebenTageAktivitaet()"
+        >
+          Letzte 7 Tage
+        </button>
+
+        <button
+          class="secondary"
+          onclick="resetAktivitaetFilter()"
+        >
+          ↻ Zurücksetzen
+        </button>
+
+        <button onclick="location.href='index.html'">
+          Zurück
+        </button>
+      </div>
     </div>
   `;
 
-  if (!data || data.length === 0) {
+  html += `
+    <div class="box">
+      <h3>👥 Benutzerstatus</h3>
+  `;
+
+  if (onlineBenutzer.length === 0) {
+    html += `
+      <p>Noch keine Benutzerinformationen vorhanden.</p>
+    `;
+  } else {
+    const jetzt = Date.now();
+
+    onlineBenutzer.forEach(benutzer => {
+      const letzteAktivitaet =
+        benutzer.last_seen
+          ? new Date(benutzer.last_seen)
+          : null;
+
+      const differenz =
+        letzteAktivitaet
+          ? jetzt - letzteAktivitaet.getTime()
+          : Infinity;
+
+      const istOnline =
+        differenz <= 90000;
+
+      const statusSymbol =
+        istOnline ? "🟢" : "⚫";
+
+      const statusText =
+        istOnline
+          ? "Online"
+          : letzteAktivitaet
+            ? "Zuletzt aktiv: " +
+              letzteAktivitaet.toLocaleString("de-DE")
+            : "Noch nie aktiv";
+
+      html += `
+        <div
+          style="
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #dbe3ed;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #f8fafc;
+          "
+          onclick="aktivitaetBenutzerAuswaehlen(
+            '${escapeHtml(
+              String(benutzer.email || "")
+                .replaceAll("\\", "\\\\")
+                .replaceAll("'", "\\'")
+            )}'
+          )"
+        >
+          <div>
+            <strong>
+              ${statusSymbol}
+              ${escapeHtml(benutzer.email || "Unbekannt")}
+            </strong>
+          </div>
+
+          <div style="margin-top: 4px; color: #64748b;">
+            ${escapeHtml(statusText)}
+          </div>
+
+          ${
+            benutzer.aktuelle_seite
+              ? `
+                <div style="margin-top: 4px;">
+                  Seite:
+                  <strong>
+                    ${escapeHtml(benutzer.aktuelle_seite)}
+                  </strong>
+                </div>
+              `
+              : ""
+          }
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+
+  html += `
+    <div class="box">
+      <h3>
+        Aktivitäten
+        (${gefilterteAktivitaeten.length})
+      </h3>
+    </div>
+  `;
+
+  if (gefilterteAktivitaeten.length === 0) {
     html += `
       <div class="box">
         <p>
-          Für diesen Tag sind keine Aktivitäten vorhanden.
+          Für den gewählten Zeitraum wurden keine
+          Aktivitäten gefunden.
         </p>
       </div>
     `;
   } else {
-    data.forEach(eintrag => {
-      const icon =
-        getAktivitaetIcon(eintrag.aktion);
+    gefilterteAktivitaeten.forEach(eintrag => {
+      let icon = "📄";
 
-      const zeit = eintrag.datum
-        ? new Date(eintrag.datum).toLocaleTimeString(
-            "de-DE",
-            {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit"
-            }
-          )
-        : "-";
+      const aktion =
+        eintrag.aktion || "";
+
+      switch (true) {
+        case aktion === "Anmeldung":
+          icon = "🟢";
+          break;
+
+        case aktion === "Abmeldung":
+          icon = "🔴";
+          break;
+
+        case aktion === "Neue Rolle erstellt":
+          icon = "➕";
+          break;
+
+        case aktion === "Rolle geändert":
+          icon = "✏️";
+          break;
+
+        case aktion.startsWith("Zu Electrotherm"):
+          icon = "🚚";
+          break;
+
+        case aktion.startsWith("Von Electrotherm zurück"):
+          icon = "📦";
+          break;
+
+        case aktion === "Verbraucht":
+          icon = "🗄️";
+          break;
+
+        case aktion === "Rolle freigegeben":
+          icon = "✅";
+          break;
+
+        case aktion === "Rolle gelöscht":
+          icon = "🗑️";
+          break;
+
+        case aktion === "Backup erstellt":
+          icon = "💾";
+          break;
+
+        case aktion === "Kunde hinzugefügt":
+          icon = "👤";
+          break;
+
+        case aktion === "Kunde umbenannt":
+          icon = "✏️👤";
+          break;
+
+        case aktion === "Kunde gelöscht":
+          icon = "❌👤";
+          break;
+      }
+
+      const datum =
+        eintrag.datum
+          ? new Date(eintrag.datum)
+              .toLocaleString("de-DE")
+          : "-";
 
       html += `
         <div class="box">
-          <div
-            style="
-              font-size:13px;
-              color:#666;
-              margin-bottom:8px;
-            "
-          >
-            🕒 ${escapeHtml(zeit)}
+          <div style="font-size: 13px; color: #64748b;">
+            ${escapeHtml(datum)}
           </div>
 
-          <div>
+          <div style="margin-top: 8px;">
             <strong>Benutzer:</strong>
             ${escapeHtml(
               eintrag.benutzer || "Unbekannt"
             )}
           </div>
 
-          <div style="margin-top:6px;">
+          <div style="margin-top: 5px;">
             <strong>
               ${icon}
-              ${escapeHtml(eintrag.aktion || "-")}
+              ${escapeHtml(aktion || "-")}
             </strong>
           </div>
 
-          ${eintrag.rolle ? `
-            <div style="margin-top:6px;">
-              <strong>Rolle:</strong>
-              ${escapeHtml(eintrag.rolle)}
-            </div>
-          ` : ""}
+          ${
+            eintrag.rolle
+              ? `
+                <div>
+                  <strong>Rolle:</strong>
+                  ${escapeHtml(eintrag.rolle)}
+                </div>
+              `
+              : ""
+          }
 
-          ${eintrag.details ? `
-            <div style="margin-top:6px;">
-              <strong>Details:</strong>
-              ${escapeHtml(eintrag.details)}
-            </div>
-          ` : ""}
+          ${
+            eintrag.details
+              ? `
+                <div>
+                  <strong>Details:</strong>
+                  ${escapeHtml(eintrag.details)}
+                </div>
+              `
+              : ""
+          }
         </div>
       `;
     });
   }
 
   document.getElementById("app").innerHTML = html;
+}
+
+function anwendenAktivitaetFilter() {
+  const von =
+    document.getElementById("aktivitaetVon").value;
+
+  const bis =
+    document.getElementById("aktivitaetBis").value;
+
+  const benutzer =
+    document.getElementById("aktivitaetBenutzer").value;
+
+  if (von && bis && von > bis) {
+    alert(
+      "Das Von-Datum darf nicht nach dem Bis-Datum liegen."
+    );
+    return;
+  }
+
+  sessionStorage.setItem(
+    "aktivitaetVon",
+    von
+  );
+
+  sessionStorage.setItem(
+    "aktivitaetBis",
+    bis
+  );
+
+  sessionStorage.setItem(
+    "aktivitaetBenutzer",
+    benutzer
+  );
+
+  showAktivitaet();
+}
+
+function resetAktivitaetFilter() {
+  sessionStorage.removeItem("aktivitaetVon");
+  sessionStorage.removeItem("aktivitaetBis");
+  sessionStorage.removeItem("aktivitaetBenutzer");
+
+  showAktivitaet();
+}
+
+function letzteSiebenTageAktivitaet() {
+  const heute = new Date();
+
+  const von = new Date();
+  von.setDate(heute.getDate() - 6);
+
+  const datumZuInput = datum => {
+    return (
+      datum.getFullYear() +
+      "-" +
+      String(datum.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(datum.getDate()).padStart(2, "0")
+    );
+  };
+
+  sessionStorage.setItem(
+    "aktivitaetVon",
+    datumZuInput(von)
+  );
+
+  sessionStorage.setItem(
+    "aktivitaetBis",
+    datumZuInput(heute)
+  );
+
+  showAktivitaet();
+}
+
+function aktivitaetBenutzerAuswaehlen(email) {
+  sessionStorage.setItem(
+    "aktivitaetBenutzer",
+    email
+  );
+
+  showAktivitaet();
 }
 
 function changeAktivitaetDatum() {
