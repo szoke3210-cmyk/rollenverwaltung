@@ -503,7 +503,18 @@ async function showAktivitaet() {
     });
   }
 
-  document.getElementById("app").innerHTML = html;
+    document.getElementById("app").innerHTML = html;
+
+  clearTimeout(window.aktivitaetRefresh);
+
+  window.aktivitaetRefresh = setTimeout(() => {
+    if (
+      new URLSearchParams(location.search).get("page") ===
+      "aktivitaet"
+    ) {
+      showAktivitaet();
+    }
+  }, 30000);
 }
 
 function anwendenAktivitaetFilter() {
