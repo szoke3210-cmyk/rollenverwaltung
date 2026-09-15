@@ -111,6 +111,8 @@ async function loadTypEditor() {
 
 
 async function renameTyp(altTyp) {
+  if (!viewerAktionPruefen()) return;
+
   const neuerTyp = document
     .getElementById("editTypName")
     .value
@@ -171,6 +173,8 @@ async function renameTyp(altTyp) {
 
 
 async function deleteTyp(typ) {
+  if (!viewerAktionPruefen()) return;
+
   const bestaetigt = confirm(
     `Typ "${typ}" wirklich löschen?\n\n` +
     `Alle Rollen dieses Typs werden gelöscht.\n` +
@@ -259,10 +263,11 @@ function typWechsel() {
 }
 
 async function addTyp() {
+  if (!viewerAktionPruefen()) return;
 
   const typ = document.getElementById("newTypName").value.trim();
   const artikel = document.getElementById("newTypArtikel").value.trim();
-
+  
   if (!typ) {
     alert("Typ eingeben");
     return;
