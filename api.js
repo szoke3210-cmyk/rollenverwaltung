@@ -40,16 +40,30 @@ async function api(path, options = {}) {
       headers: { ...getHeaders(), ...(options.headers || {}) }
     });
 
-    if (res.status === 401 || res.status === 403) {
-      console.error("Sitzung oder Berechtigung ungültig:", await res.text());
-      accessToken = null;
-      currentUser = null;
-      isAdmin = false;
-      currentUserRole = "user";
-      showLoggedInUser();
-      showLogin();
-      return [];
-    }
+  if (res.status === 401) {
+  console.error("Sitzung ungültig:", await res.text());
+
+  accessToken = null;
+  currentUser = null;
+  isAdmin = false;
+  currentUserRole = "user";
+  window.isViewer = false;
+
+  showLoggedInUser();
+  showLogin();
+
+  return [];
+}
+
+if (res.status === 403) {
+  console.warn(
+    "Keine Berechtigung für diesen API-Aufruf:",
+    path,
+    await res.text()
+  );
+
+  return [];
+}
 
     if (!res.ok) {
       const message = await res.text();
