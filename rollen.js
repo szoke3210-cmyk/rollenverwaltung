@@ -473,6 +473,7 @@ function kundeWechsel() {
 
 
 async function neueRolle() {
+  if (!viewerAktionPruefen()) return;
   const kennung = document.getElementById("newKennung").value.trim();
   const selectTyp = document.getElementById("typSelect").value;
   const neuerTyp = document.getElementById("newTyp").value.trim();
@@ -524,6 +525,8 @@ location.reload();
 }
 
 async function markRolleVerbraucht(id) {
+  if (!viewerAktionPruefen()) return;
+
   if (!confirm("Diese Rolle als verbraucht markieren?")) {
     return;
   }
@@ -939,6 +942,8 @@ html += `
 
 
 async function speichern(id) {
+  if (!viewerAktionPruefen()) return;
+
   const daten = await api("rollen?id=eq." + id + "&select=*");
   if (!daten.length) return;
 
@@ -1308,20 +1313,25 @@ async function speichern(id) {
 }
 
 async function zuElectrotherm(id) {
+  if (!viewerAktionPruefen()) return;
+
   window.forceStatus = "Electrotherm";
   await speichern(id);
 }
 
 
 async function zurueck(id) {
+  if (!viewerAktionPruefen()) return;
+
   window.forceStatus = "Im Lager";
   await speichern(id);
 }
 
 
 async function saveBemerkung(id) {
-  const bemerkungInput = document.getElementById("bemerkungEdit");
+  if (!viewerAktionPruefen()) return;
 
+  const bemerkungInput = document.getElementById("bemerkungEdit");
   if (!bemerkungInput) {
     alert("Interne Bemerkung nicht gefunden.");
     return;
@@ -1349,6 +1359,8 @@ async function saveBemerkung(id) {
 
 
 async function rolleFreigeben(id) {
+  if (!viewerAktionPruefen()) return;
+
   if (!confirm("Diese Rolle freigeben?")) return;
 
   const daten = await api("rollen?id=eq." + id + "&select=*");
@@ -1577,6 +1589,8 @@ async function loadRolleEditor() {
 
 
 async function saveRolleEditor(id) {
+  if (!viewerAktionPruefen()) return;
+
   const kennung = document.getElementById("editKennung").value.trim();
   const typ = document.getElementById("editTyp").value.trim();
   const ursprung = Number(document.getElementById("editUrsprung").value);
@@ -1620,6 +1634,8 @@ location.reload();
 
 
 async function deleteRolle(id) {
+  if (!viewerAktionPruefen()) return;
+
   if (!confirm(
     "Diese Rolle archivieren? Die Historie und Statistik bleiben erhalten."
   )) {
@@ -1671,8 +1687,9 @@ await api("historie", {
 }
 
 async function freigeben(id) {
-  if (!confirm("Diese Rolle freigefben?")) return;
+  if (!viewerAktionPruefen()) return;
 
+  if (!confirm("Diese Rolle freigefben?")) return;
   await api("rollen?id=eq." + id, {
     method: "PATCH",
     body: JSON.stringify({
@@ -1702,6 +1719,7 @@ await api("historie", {
 }
 
 async function saveInterneBemerkung(id) {
+  if (!viewerAktionPruefen()) return;
 
   if (!isAdmin) {
     alert("Nur Administratoren dürfen die interne Bemerkung ändern.");
