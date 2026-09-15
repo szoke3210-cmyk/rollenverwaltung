@@ -181,7 +181,7 @@ if (!typFilter) {
           📷 QR-Code scannen
         </button>
 
-        ${isAdmin ? `
+        ${(isAdmin || currentUserRole === "viewer") ? `
           <button onclick="location.href='?page=kunden'">
             👤 Kunde bearbeiten
           </button>
@@ -191,14 +191,14 @@ if (!typFilter) {
           </button>
           
 ${isAdmin ? `
-<button onclick="backupHerunterladen()">
-  💾 Backup herunterladen
-</button>
+  <button onclick="backupHerunterladen()">
+    💾 Backup herunterladen
+  </button>
+
+  <button onclick="location.href='?page=aktivitaet'">
+    📋 Aktivität
+  </button>
 ` : ""}
-          <button onclick="location.href='?page=aktivitaet'">
-            📋 Aktivität
-          </button>
-        ` : ""}
       </div>
 
       <div class="box extra-urlaub-box">
@@ -218,12 +218,11 @@ html += `
   <div class="box">
     <h2>${typFilter ? "Typ: " + typFilter : "Übersicht nach Typ"}</h2>
 
-    ${!typFilter && isAdmin ? `
-      <button onclick="location.href='?page=typen'">
-        🏷️ Typ bearbeiten
-      </button>
-    ` : ""}
-
+   ${!typFilter && (isAdmin || currentUserRole === "viewer") ? `
+  <button onclick="location.href='?page=typen'">
+    🏷️ Typ bearbeiten
+  </button>
+` : ""}
     <div class="grid">
 `;
   
@@ -362,7 +361,7 @@ html += `
     >
   </div>
   
-  ${isAdmin ? `
+ ${(isAdmin || currentUserRole === "viewer") ? `
   <button onclick="location.href='?page=auswahl'">
     🛠️ Rolle bearbeiten
   </button>
@@ -699,11 +698,11 @@ async function showDetail() {
   `;
   
 html += `
-  ${isAdmin ? `
-    <button onclick="location.href='?page=auswahl&id=${r.id}'">
-      ✏️ Rolle bearbeiten
-    </button>
-  ` : ""}
+ ${(isAdmin || currentUserRole === "viewer") ? `
+  <button onclick="location.href='?page=auswahl&id=${r.id}'">
+    ✏️ Rolle bearbeiten
+  </button>
+` : ""}
 `;
   
   html += `
