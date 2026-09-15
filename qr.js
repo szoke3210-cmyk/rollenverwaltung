@@ -158,8 +158,11 @@ ctx.stroke();
   };
 }
 
-
 async function savePublicBemerkung(rollenId) {
+  if (currentUserRole === "viewer") {
+    if (!viewerAktionPruefen()) return;
+  }
+
   const input = document.getElementById("publicBemerkung");
   const text = input?.value.trim();
 
@@ -300,6 +303,10 @@ function renderQrBemerkungenListe(bemerkungen, adminModus = false) {
 
 
 async function deleteQrBemerkung(id) {
+  if (currentUserRole === "viewer") {
+    if (!viewerAktionPruefen()) return;
+  }
+
   if (!isAdmin) {
     alert("Nur Administratoren dürfen Bemerkungen löschen.");
     return;
