@@ -388,7 +388,7 @@ rollen.forEach(r => {
   const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
 
   html += `
-    <tr onclick="location.href='?id=${encodeURIComponent(r.kennung)}'">
+    <tr onclick="rolleOeffnen('${r.kennung}')">
       <td>${r.kennung}</td>
       <td>${r.bemerkung || "-"}</td>
       <td>${r.typ}</td>
@@ -402,6 +402,19 @@ rollen.forEach(r => {
 
 html += `</table>`;
 document.getElementById("app").innerHTML = html;
+
+// Előző görgetési pozíció visszaállítása
+const gespeichertePosition =
+  sessionStorage.getItem("rollenScrollPosition");
+
+if (gespeichertePosition !== null) {
+  requestAnimationFrame(() => {
+    window.scrollTo(
+      0,
+      Number(gespeichertePosition)
+    );
+  });
+}
 
 }
 
@@ -417,6 +430,22 @@ function changeStatusFilter() {
   );
 
   showList();
+}
+
+function rolleOeffnen(kennung) {
+  sessionStorage.setItem(
+    "rollenScrollPosition",
+    String(window.scrollY)
+  );
+
+  location.href =
+    "?id=" + encodeURIComponent(kennung);
+}
+
+
+function zurUebersicht() {
+  sessionStorage.removeItem("rollenScrollPosition");
+  location.href = "index.html";
 }
 
 function filterTable() {
@@ -1430,9 +1459,9 @@ async function showAuswahl() {
 
       <div id="rolleEditor"></div>
 
-      <button onclick="location.href='index.html'">
-        🔚 Zur Übersicht
-      </button>
+      <button onclick="zurUebersicht()">
+ 🏠 Zur Übersicht
+</button>
     </div>
   `;
 
