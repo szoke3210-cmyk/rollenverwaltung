@@ -127,10 +127,14 @@ async function initSupabaseSession() {
 
     try {
       currentUser = JSON.parse(cachedUserRaw);
-      currentUserRole = localStorage.getItem("savelineUserRole") || "user";
-      isAdmin = currentUserRole === "admin";
-      accessToken = localStorage.getItem("savelineCachedAccessToken") || null;
-      showLoggedInUser();
+currentUserRole = localStorage.getItem("savelineUserRole") || "user";
+
+isAdmin = currentUserRole === "admin";
+window.isViewer = currentUserRole === "viewer";
+
+accessToken = localStorage.getItem("savelineCachedAccessToken") || null;
+
+showLoggedInUser();
       console.log("Offline-Anmeldung aus lokalem Speicher aktiv");
       return true;
     } catch (error) {
