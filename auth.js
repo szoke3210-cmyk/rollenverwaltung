@@ -226,16 +226,19 @@ async function loadUserRole() {
     const role = profiles[0]?.role || "user";
 
     currentUserRole = role;
-    isAdmin = role === "admin";
-    localStorage.setItem("savelineUserRole", role);
+isAdmin = role === "admin";
+window.isViewer = role === "viewer";
 
-    console.log("Benutzerrolle:", currentUserRole);
+localStorage.setItem("savelineUserRole", role);
+
+console.log("Benutzerrolle:", currentUserRole);
+console.log("Viewer:", window.isViewer);
   } catch (error) {
     console.error("Fehler beim Laden der Benutzerrolle:", error);
-
-    const cachedRole = localStorage.getItem("savelineUserRole") || "user";
-    currentUserRole = cachedRole;
-    isAdmin = cachedRole === "admin";
+const cachedRole = localStorage.getItem("savelineUserRole") || "user";
+currentUserRole = cachedRole;
+isAdmin = cachedRole === "admin";
+window.isViewer = cachedRole === "viewer";
   }
 }
 
@@ -353,4 +356,17 @@ async function updateOnlineStatus(login = false) {
     },
     body: JSON.stringify(body)
   });
+}
+function viewerAktionPruefen() {
+  if (currentUserRole !== "viewer") {
+    return true;
+  }
+
+  alert(
+    "Nicht erlaubte Aktion.\n\n" +
+    "Dieser Zugang ist ausschließlich zur Ansicht vorgesehen.\n" +
+    "Änderungen können mit diesem Benutzerkonto nicht durchgeführt werden."
+  );
+
+  return false;
 }
