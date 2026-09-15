@@ -408,14 +408,16 @@ const gespeichertePosition =
   sessionStorage.getItem("rollenScrollPosition");
 
 if (gespeichertePosition !== null) {
+
+  // Azonnal töröljük, hogy csak egyszer legyen használva
+  sessionStorage.removeItem("rollenScrollPosition");
+
   requestAnimationFrame(() => {
     window.scrollTo(
       0,
       Number(gespeichertePosition)
     );
   });
-}
-
 }
 
 
@@ -445,6 +447,9 @@ function rolleOeffnen(kennung) {
 
 function zurUebersicht() {
   sessionStorage.removeItem("rollenScrollPosition");
+
+  window.scrollTo(0, 0);
+
   location.href = "index.html";
 }
 
