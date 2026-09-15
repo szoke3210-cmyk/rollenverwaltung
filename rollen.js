@@ -420,6 +420,9 @@ if (gespeichertePosition !== null) {
   });
 }
 
+// showList vége
+}
+
 
 function changeStatusFilter() {
   const select = document.getElementById("statusFilter");
