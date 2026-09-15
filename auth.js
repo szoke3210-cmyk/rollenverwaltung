@@ -354,12 +354,12 @@ async function updateOnlineStatus(login = false) {
   }
 
   await api("online_users", {
-    method: "POST",
-    headers: {
-      Prefer: "resolution=merge-duplicates"
-    },
-    body: JSON.stringify(body)
-  });
+  method: "POST",
+  headers: {
+    Prefer: "resolution=merge-duplicates,return=minimal"
+  },
+  body: JSON.stringify(body)
+});
 }
 function viewerAktionPruefen() {
   if (currentUserRole !== "viewer") {
