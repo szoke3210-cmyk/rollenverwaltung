@@ -718,17 +718,30 @@ html += `
         </select>
 
         <input
-          id="auftragNeu"
-          placeholder="Neuer Kunde"
-          style="display:none;"
-        >
+  id="auftragNeu"
+  placeholder="Neuer Kunde"
+  style="display:none;"
+>
 
-        <button
-          class="orange"
-          onclick="zuElectrotherm(${r.id})"
-        >
-         ⬅️🚚 Zu Electrotherm senden
-        </button>
+<label style="margin-top:15px;">
+  Geplanter Verbrauch (m)
+</label>
+
+<input
+  id="geplanterVerbrauch"
+  type="number"
+  step="0.01"
+  min="0"
+  max="${r.aktuelle_laenge}"
+  placeholder="Geplanten Verbrauch eingeben"
+>
+
+<button
+  class="orange"
+  onclick="zuElectrotherm(${r.id})"
+>
+ ⬅️🚚 Zu Electrotherm senden
+</button>
       </div>
     `;
   }
@@ -904,6 +917,25 @@ async function speichern(id) {
       ? null
       : Number(verbrauchText);
 
+
+  // ==============================
+  // GEPLANTER VERBRAUCH
+  // ==============================
+
+  const geplanterVerbrauchInput =
+    document.getElementById("geplanterVerbrauch");
+
+  const geplanterVerbrauchText =
+    geplanterVerbrauchInput
+      ? geplanterVerbrauchInput.value.trim()
+      : "";
+
+  const geplanterVerbrauch =
+    geplanterVerbrauchText === ""
+      ? null
+      : Number(geplanterVerbrauchText);
+
+
   const status = window.forceStatus || r.status;
 
   const auftragSelectElement =
@@ -925,7 +957,11 @@ async function speichern(id) {
       ? auftragNeu
       : auftragSelect;
 
-  // Verbrauch darf keine ungültige oder negative Zahl sein
+
+  // ==============================
+  // VERBRAUCH PRÜFEN
+  // ==============================
+
   if (
     verbrauch !== null &&
     (!Number.isFinite(verbrauch) || verbrauch < 0)
@@ -934,12 +970,11 @@ async function speichern(id) {
     return;
   }
 
+
   /*
-   * Wenn die Rolle bei Electrotherm ist und entweder
-   * zurückkommt oder direkt als verbraucht markiert wird,
-   * muss ein Verbrauch eingetragen werden.
-   *
-   * Auch 0 ist erlaubt, muss aber ausdrücklich eingegeben werden.
+   * Wenn die Rolle von Electrotherm zurückkommt
+   * oder als verbraucht markiert wird,
+   * muss der tatsächliche Verbrauch angegeben werden.
    */
   if (
     r.status === "Electrotherm" &&
@@ -952,6 +987,7 @@ async function speichern(id) {
     return;
   }
 
+
   if (
     verbrauch !== null &&
     verbrauch > Number(r.aktuelle_laenge)
@@ -962,7 +998,48 @@ async function speichern(id) {
     return;
   }
 
-  // Neue Länge nur einmal berechnen
+
+  // ==============================
+  // GEPLANTEN VERBRAUCH PRÜFEN
+  // ==============================
+
+  // Nur beim Senden zu Electrotherm erforderlich
+  if (
+    r.status !== "Electrotherm" &&
+    status === "Electrotherm"
+  ) {
+
+    if (geplanterVerbrauchText === "") {
+      alert("Bitte geplanten Verbrauch eingeben.");
+      return;
+    }
+
+    if (
+      !Number.isFinite(geplanterVerbrauch) ||
+      geplanterVerbrauch <= 0
+    ) {
+      alert(
+        "Der geplante Verbrauch muss größer als 0 sein."
+      );
+      return;
+    }
+
+    if (
+      geplanterVerbrauch >
+      Number(r.aktuelle_laenge)
+    ) {
+      alert(
+        "Der geplante Verbrauch darf nicht größer als die aktuelle Länge sein."
+      );
+      return;
+    }
+  }
+
+
+  // ==============================
+  // NEUE LÄNGE
+  // ==============================
+
   let neueLaenge = Number(r.aktuelle_laenge);
 
   if (
@@ -977,7 +1054,11 @@ async function speichern(id) {
     return;
   }
 
-  // Beim Senden zu Electrotherm ist ein Kunde/Auftrag erforderlich
+
+  // ==============================
+  // KUNDE / AUFTRAG
+  // ==============================
+
   if (
     status === "Electrotherm" &&
     !auftrag.trim()
@@ -986,7 +1067,9 @@ async function speichern(id) {
     return;
   }
 
-  // Bereits bei Electrotherm: Auftrag nicht einfach ändern
+
+  // Bereits bei Electrotherm:
+  // Auftrag nicht einfach ändern
   if (
     r.status === "Electrotherm" &&
     status === "Electrotherm" &&
@@ -998,7 +1081,11 @@ async function speichern(id) {
     return;
   }
 
-  // Neuen Kunden speichern
+
+  // ==============================
+  // NEUEN KUNDEN SPEICHERN
+  // ==============================
+
   if (
     auftragSelect === "__neu" &&
     auftragNeu
@@ -1021,20 +1108,49 @@ async function speichern(id) {
     }
   }
 
+
   const neuerAuftrag =
     status === "Electrotherm"
       ? auftrag
       : "";
 
+
+  // Geplanter Verbrauch bleibt während
+  // Electrotherm gespeichert.
+  // Nach der Rückkehr wird er geleert.
+  const neuerGeplanterVerbrauch =
+    status === "Electrotherm"
+      ? (
+          geplanterVerbrauch !== null
+            ? geplanterVerbrauch
+            : r.geplanter_verbrauch
+        )
+      : null;
+
+
+  // ==============================
+  // ÄNDERUNG PRÜFEN
+  // ==============================
+
   const nichtsGeaendert =
     Number(r.aktuelle_laenge) === Number(neueLaenge) &&
     r.status === status &&
-    (r.auftrag || "") === neuerAuftrag;
+    (r.auftrag || "") === neuerAuftrag &&
+    (
+      r.geplanter_verbrauch === neuerGeplanterVerbrauch ||
+      Number(r.geplanter_verbrauch) ===
+      Number(neuerGeplanterVerbrauch)
+    );
 
   if (nichtsGeaendert) {
     alert("Keine Änderung.");
     return;
   }
+
+
+  // ==============================
+  // ROLLE SPEICHERN
+  // ==============================
 
   await api("rollen?id=eq." + id, {
     method: "PATCH",
@@ -1042,9 +1158,15 @@ async function speichern(id) {
       aktuelle_laenge: neueLaenge,
       status: status,
       auftrag: neuerAuftrag,
+      geplanter_verbrauch: neuerGeplanterVerbrauch,
       bemerkung: r.bemerkung || ""
     })
   });
+
+
+  // ==============================
+  // HISTORIE
+  // ==============================
 
   let aktion = "Geändert";
 
@@ -1069,6 +1191,7 @@ async function speichern(id) {
     aktion = "Als verbraucht markiert";
   }
 
+
   if (
     auftrag &&
     status === "Electrotherm"
@@ -1076,46 +1199,76 @@ async function speichern(id) {
     aktion += " | Auftrag: " + auftrag;
   }
 
+
+  // Geplanter Verbrauch wird beim Senden
+  // in der Historie festgehalten
+  if (
+    r.status !== "Electrotherm" &&
+    status === "Electrotherm" &&
+    geplanterVerbrauch !== null
+  ) {
+    aktion +=
+      " | Geplanter Verbrauch: " +
+      geplanterVerbrauch +
+      " m";
+  }
+
+
   if (
     verbrauch !== null &&
     r.status === "Electrotherm" &&
     (status === "Im Lager" || status === "Verbraucht")
   ) {
-    aktion += " | Verbrauch: " + verbrauch + " m";
+    aktion +=
+      " | Verbrauch: " +
+      verbrauch +
+      " m";
   }
 
- const benutzer = await getAktuellerBenutzer();
 
-await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    aktion: aktion,
-    laenge: neueLaenge,
-    bemerkung: auftrag,
-    verbrauch: verbrauch,
-    typ: r.typ,
-    auftrag: auftrag,
-    benutzer: benutzer
-  })
-});
+  const benutzer =
+    await getAktuellerBenutzer();
+
+
+  await api("historie", {
+    method: "POST",
+    body: JSON.stringify({
+      rollen_id: id,
+      aktion: aktion,
+      laenge: neueLaenge,
+      bemerkung: auftrag,
+      verbrauch: verbrauch,
+      typ: r.typ,
+      auftrag: auftrag,
+      benutzer: benutzer
+    })
+  });
+
+
+  // ==============================
+  // AKTIVITÄT
+  // ==============================
 
   await logAktion(
     aktion,
     r.kennung,
     `Typ: ${r.typ}, Kunde/Auftrag: ${
       auftrag || "-"
-    }, Verbrauch: ${
+    }, Geplanter Verbrauch: ${
+      geplanterVerbrauch ??
+      r.geplanter_verbrauch ??
+      "-"
+    } m, Verbrauch: ${
       verbrauch ?? 0
     } m, Neue Länge: ${neueLaenge} m`
   );
+
 
   window.forceStatus = null;
 
   alert("Gespeichert");
   location.reload();
 }
-
 
 async function zuElectrotherm(id) {
   window.forceStatus = "Electrotherm";
