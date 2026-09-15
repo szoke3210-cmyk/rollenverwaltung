@@ -353,13 +353,16 @@ async function updateOnlineStatus(login = false) {
     body.login_at = new Date().toISOString();
   }
 
-  await api("online_users", {
-  method: "POST",
-  headers: {
-    Prefer: "resolution=merge-duplicates,return=minimal"
-  },
-  body: JSON.stringify(body)
-});
+ await api(
+  "online_users?user_id=eq." + encodeURIComponent(currentUser.id),
+  {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify(body)
+  }
+);
 }
 function viewerAktionPruefen() {
   if (currentUserRole !== "viewer") {
