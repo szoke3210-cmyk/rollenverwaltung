@@ -30,10 +30,10 @@ async function showList() {
   const statusFilter =
     sessionStorage.getItem("statusFilter") || "alle";
 
-  if (statusFilter === "alle") {
-    if (isAdmin) {
-      // Admin lát mindent
-    } else {
+if (statusFilter === "alle") {
+  if (isAdmin || currentUserRole === "viewer") {
+    // Admin und Viewer sehen alles
+  } else {
       rollen = rollen.filter(r =>
         r.status === "Im Lager" ||
         r.status === "Electrotherm" ||
@@ -276,7 +276,7 @@ html += `
   </div>
 `;
 
-if (!typFilter && isAdmin) {
+if (!typFilter && (isAdmin || currentUserRole === "viewer")) {
   html += `
   <div class="box">
     <h2>Neue Rolle hinzufügen</h2>
@@ -344,7 +344,7 @@ html += `
   Nicht freigegeben
 </option>
 
-  ${isAdmin ? `
+ ${(isAdmin || currentUserRole === "viewer") ? `
     <option value="verbraucht" ${
       statusFilter === "verbraucht" ? "selected" : ""
     }>
@@ -644,7 +644,7 @@ async function showDetail() {
   <div class="box">
     <h3>Interne Bemerkung</h3>
 
-    ${isAdmin ? `
+    ${(isAdmin || currentUserRole === "viewer") ? `
       <textarea
         id="bemerkungEdit"
         placeholder="Interne Bemerkung eingeben..."
@@ -673,7 +673,7 @@ async function showDetail() {
   </button>
 ` : ""}
 
-      ${isAdmin && r.status === "Nicht freigegeben" ? `
+      ${(isAdmin || currentUserRole === "viewer") && r.status === "Nicht freigegeben" ? `
         <button
           class="green"
           onclick="freigeben(${r.id})"
@@ -682,7 +682,7 @@ async function showDetail() {
         </button>
       ` : ""}
 
-      ${isAdmin ? `
+     ${(isAdmin || currentUserRole === "viewer") ? `
         <button
           onclick="deleteRolle(${r.id})"
           style="
@@ -1566,7 +1566,7 @@ async function loadRolleEditor() {
        💾 Änderungen speichern
       </button>
 
-      ${isAdmin ? `
+     ${(isAdmin || currentUserRole === "viewer") ? `
       ${r.status === "Nicht freigegeben" ? `
   <button onclick="rolleFreigeben(${r.id})" style="background:#28a745;color:white;margin-left:10px;">
    🔓 Freigeben
