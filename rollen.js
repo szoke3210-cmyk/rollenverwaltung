@@ -181,15 +181,16 @@ if (!typFilter) {
           📷 QR-Code scannen
         </button>
 
-        ${(isAdmin || currentUserRole === "viewer") ? `
-          <button onclick="location.href='?page=kunden'">
-            👤 Kunde bearbeiten
-          </button>
+       ${(isAdmin || currentUserRole === "viewer") ? `
+  <button onclick="location.href='?page=kunden'">
+    👤 Kunde bearbeiten
+  </button>
 
-          <button onclick="location.href='?page=auswahl'">
-           🛠️ Rollen bearbeiten
-          </button>
-          
+  <button onclick="location.href='?page=auswahl'">
+    🛠️ Rollen bearbeiten
+  </button>
+` : ""}
+
 ${isAdmin ? `
   <button onclick="backupHerunterladen()">
     💾 Backup herunterladen
