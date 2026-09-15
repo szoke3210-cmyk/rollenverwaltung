@@ -69,6 +69,7 @@ async function loadKundeEditor() {
 
 
 async function renameKunde(id, alterName) {
+  if (!viewerAktionPruefen()) return;
   const neuerName = document.getElementById("newKundeName").value.trim();
 
   if (!neuerName) {
@@ -106,6 +107,8 @@ async function renameKunde(id, alterName) {
 
 
 async function deleteKunde(id, name) {
+  if (!viewerAktionPruefen()) return;
+
   if (!confirm("Diesen Kunden wirklich löschen? Historie bleibt erhalten.")) {
     return;
   }
@@ -126,6 +129,8 @@ async function deleteKunde(id, name) {
 
 
 async function addKunde() {
+  if (!viewerAktionPruefen()) return;
+
   const name = document.getElementById("neuerKundeName").value.trim();
 
   if (!name) {
