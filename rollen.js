@@ -202,14 +202,16 @@ ${isAdmin ? `
 ` : ""}
       </div>
 
-      <div class="box extra-urlaub-box">
-        <button
-          class="extra-urlaub-button"
-          onclick="window.open('extra-urlaub.jpg', '_blank')"
-        >
-          🌴 Extra Urlaub
-        </button>
-      </div>
+      ${currentUserRole !== "viewer" ? `
+  <div class="box extra-urlaub-box">
+    <button
+      class="extra-urlaub-button"
+      onclick="window.open('extra-urlaub.jpg', '_blank')"
+    >
+      Extra Urlaub
+    </button>
+  </div>
+` : ""}
 
     </div>
   `;
