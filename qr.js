@@ -86,7 +86,7 @@ function qrUrl(kennung) {
 }
 
 
-function downloadQRMitFarben(kennung, typ, url) {
+function downloadQRMitFarben(kennung, typ, urspruenglicheLaenge, url) {
   const farben = getTypFarben(typ);
 
   const canvas = document.createElement("canvas");
@@ -146,10 +146,13 @@ ctx.stroke();
     ctx.textAlign = "center";
 
     ctx.font = "bold 54px Arial";
-    ctx.fillText(kennung, 450, 860);
+ctx.fillText(kennung, 450, 840);
 
-    ctx.font = "bold 42px Arial";
-    ctx.fillText(typ, 450, 925);
+ctx.font = "bold 42px Arial";
+ctx.fillText(typ, 450, 900);
+
+ctx.font = "32px Arial";
+ctx.fillText("Ursprüngliche Länge: " + urspruenglicheLaenge + " m", 450, 955);
 
     const a = document.createElement("a");
     a.href = canvas.toDataURL("image/png");
