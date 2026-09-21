@@ -196,9 +196,11 @@ ${isAdmin ? `
     💾 Backup herunterladen
   </button>
   
+<!--
 <button onclick="alleQrCodesHerunterladen()">
   📥 Alle QR-Codes herunterladen
 </button>
+-->
 
   <button onclick="location.href='?page=aktivitaet'">
     📋 Aktivität
