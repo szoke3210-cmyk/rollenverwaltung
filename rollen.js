@@ -629,11 +629,7 @@ async function showDetail() {
           <br>
 
           <button
-            onclick="downloadQRMitFarben(
-              '${r.kennung}',
-              '${r.typ}',
-              '${qrUrl(r.kennung)}'
-            )"
+           onclick="downloadQRMitFarben('${r.kennung}', '${r.typ}', '${r.urspruengliche_laenge}', '${qrUrl(r.kennung)}')"
             style="margin-top:10px;"
           >
            ⬇️ QR-Code herunterladen
