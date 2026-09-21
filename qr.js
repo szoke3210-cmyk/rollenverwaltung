@@ -161,6 +161,42 @@ ctx.fillText("Ursprüngliche Länge: " + urspruenglicheLaenge + " m", 450, 955);
   };
 }
 
+async function alleQrCodesHerunterladen() {
+  if (!isAdmin) {
+    alert("Nur Administratoren dürfen alle QR-Codes herunterladen.");
+    return;
+  }
+
+  const rollen = await api(
+    "rollen?select=kennung,typ,urspruengliche_laenge&order=kennung.asc"
+  );
+
+  if (!rollen || rollen.length === 0) {
+    alert("Keine Rollen gefunden.");
+    return;
+  }
+
+  const bestaetigt = confirm(
+    `${rollen.length} QR-Codes werden heruntergeladen. Fortfahren?`
+  );
+
+  if (!bestaetigt) return;
+
+  for (let i = 0; i < rollen.length; i++) {
+    const r = rollen[i];
+
+    downloadQRMitFarben(
+      r.kennung,
+      r.typ,
+      r.urspruengliche_laenge,
+      qrUrl(r.kennung)
+    );
+
+    // Kis szünet a letöltések között
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
 async function savePublicBemerkung(rollenId) {
   if (currentUserRole === "viewer") {
     if (!viewerAktionPruefen()) return;
