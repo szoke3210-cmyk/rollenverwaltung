@@ -17,7 +17,7 @@ async function showPublicRolle() {
   } else {
     try {
       const res = await fetch(
-  SUPABASE_URL + "/rest/v1/rollen_public_qr?kennung=eq." + encodeURIComponent(kennung),
+  SUPABASE_URL + "/rest/v1/rollen_qr_public_data?kennung=eq." + encodeURIComponent(kennung),
   { headers: publicHeaders }
 );
       if (!res.ok) throw new Error(await res.text());
