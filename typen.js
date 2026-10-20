@@ -1,9 +1,14 @@
 async function showTypen() {
   const typenDaten = await api("typen?select=*&order=typ.asc");
 
-  const typen = typenDaten
-    .map(t => t.typ)
-    .filter(Boolean);
+  const rollenDaten = await api("rollen?select=typ");
+
+  const typen = [
+    ...new Set([
+      ...typenDaten.map(t => t.typ),
+      ...rollenDaten.map(r => r.typ)
+    ].filter(Boolean))
+  ].sort((a, b) => a.localeCompare(b, "de"));
 
   let html = `
     <div class="box">
