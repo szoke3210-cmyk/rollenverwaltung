@@ -30,18 +30,10 @@ async function showList() {
   const statusFilter =
     sessionStorage.getItem("statusFilter") || "alle";
 
-if (statusFilter === "alle") {
-  if (isAdmin || currentUserRole === "viewer") {
-    // Admin und Viewer sehen alles
-  } else {
-      rollen = rollen.filter(r =>
-        r.status === "Im Lager" ||
-        r.status === "Electrotherm" ||
-        r.status === "Nicht freigegeben" ||
-        r.status === "Test notwendig"
-      );
-    }
-  }
+if (r.status !== "Verbraucht") {
+  typen[r.typ].meter +=
+    Number(r.aktuelle_laenge) || 0;
+}
 
   if (statusFilter === "verbraucht") {
     rollen = rollen.filter(r =>
@@ -124,13 +116,10 @@ if (statusFilter === "alle") {
       typen[r.typ].count++;
     }
 
-    if (
-      r.status !== "Verbraucht" &&
-      r.status !== "Archiviert"
-    ) {
-      typen[r.typ].meter +=
-        Number(r.aktuelle_laenge) || 0;
-    }
+   if (r.status !== "Verbraucht") {
+  typen[r.typ].meter +=
+    Number(r.aktuelle_laenge) || 0;
+}
 
     if (r.status === "Im Lager") {
       typen[r.typ].lager++;
