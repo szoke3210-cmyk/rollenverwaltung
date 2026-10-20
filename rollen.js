@@ -675,19 +675,6 @@ async function showDetail() {
           ✅ Freigeben
         </button>
       ` : ""}
-
-     ${(isAdmin || currentUserRole === "viewer") ? `
-        <button
-          onclick="deleteRolle(${r.id})"
-          style="
-            background:#dc3545;
-            color:white;
-            margin-left:10px;
-          "
-        >
-         📦 Rolle archivieren
-        </button>
-      ` : ""}
     </div>
   `;
   
@@ -1402,6 +1389,11 @@ async function showAuswahl() {
   let rollen = await api("rollen?select=*&order=typ.asc,kennung.asc");
   const filter = localStorage.getItem("rolleFilter") || "aktiv";
 
+ if (filter === "alle") {
+  rollen = rollen.filter(r =>
+    r.status !== "Verbraucht"
+  );
+}
   if (filter === "aktiv") {
     rollen = rollen.filter(r =>
       r.status === "Im Lager" ||
@@ -1415,12 +1407,12 @@ async function showAuswahl() {
     );
   }
 
-  if (filter === "archiv") {
-    rollen = rollen.filter(r =>
-      r.status === "Verbraucht"
-    );
-  }
-
+  if (filter === "verbraucht") {
+  rollen = rollen.filter(r =>
+    r.status === "Verbraucht"
+  );
+}
+  
   if (filter === "test") {
     rollen = rollen.filter(r =>
       r.status === "Test notwendig"
@@ -1442,9 +1434,9 @@ async function showAuswahl() {
           Nicht freigegeben
         </option>
 
-        <option value="archiv" ${filter === "archiv" ? "selected" : ""}>
-          Archivierte Rollen
-        </option>
+        <option value="verbraucht" ${filter === "verbraucht" ? "selected" : ""}>
+  Verbraucht
+</option>
 
         <option value="test" ${filter === "test" ? "selected" : ""}>
           Test notwendig
@@ -1572,9 +1564,6 @@ async function loadRolleEditor() {
   </button>
 ` : ""}
 
-        <button onclick="deleteRolle(${r.id})" style="background:#dc3545;color:white;margin-left:10px;">
-         📦 Rolle archivieren
-        </button>
       ` : ""}
     </div>
   `;
@@ -1623,60 +1612,6 @@ await logAktion(
 
 alert("Rolle geändert");
 location.reload();
-}
-
-
-async function deleteRolle(id) {
-  if (!viewerAktionPruefen()) return;
-
-  if (!confirm(
-    "Diese Rolle archivieren? Die Historie und Statistik bleiben erhalten."
-  )) {
-    return;
-  }
-
-  const daten = await api(
-    "rollen?id=eq." + id + "&select=*"
-  );
-
-  if (!daten.length) {
-    alert("Rolle nicht gefunden.");
-    return;
-  }
-
-  const rolle = daten[0];
-
-  await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      status: "Verbraucht",
-      auftrag: ""
-    })
-  });
-
-  const benutzer = await getAktuellerBenutzer();
-
-await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    aktion: "Archiviert",
-    laenge: rolle.aktuelle_laenge,
-    bemerkung: "Rolle wurde archiviert",
-    typ: rolle.typ,
-    auftrag: rolle.auftrag || "",
-    benutzer: benutzer
-  })
-});
-
-  await logAktion(
-    "Rolle archiviert",
-    rolle.kennung,
-    `Typ: ${rolle.typ}, Länge: ${rolle.aktuelle_laenge} m`
-  );
-
-  alert("Rolle wurde archiviert. Historie und Statistik bleiben erhalten.");
-  location.href = "index.html";
 }
 
 async function freigeben(id) {
