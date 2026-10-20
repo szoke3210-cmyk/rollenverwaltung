@@ -381,11 +381,23 @@ html += `
     </tr>
 `;
 
-rollen.forEach(r => {
-  const verlust = Number(r.urspruengliche_laenge) - Number(r.aktuelle_laenge);
+rollen.forEach((r, index) => {
+  const verlust =
+    Number(r.urspruengliche_laenge) -
+    Number(r.aktuelle_laenge);
+
+  // Megnézzük, hogy a következő tekercs más típusú-e
+  const naechsteRolle = rollen[index + 1];
+
+  const typEnde =
+    naechsteRolle &&
+    r.typ !== naechsteRolle.typ;
 
   html += `
-    <tr onclick="rolleOeffnen('${r.kennung}')">
+    <tr
+      onclick="rolleOeffnen('${r.kennung}')"
+      style="${typEnde ? 'border-bottom: 3px solid #64748b;' : ''}"
+    >
       <td>${r.kennung}</td>
       <td>${r.bemerkung || "-"}</td>
       <td>${r.typ}</td>
@@ -396,7 +408,7 @@ rollen.forEach(r => {
     </tr>
   `;
 });
-
+  
 html += `</table>`;
 document.getElementById("app").innerHTML = html;
 
