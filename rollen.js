@@ -1539,6 +1539,15 @@ ${(isAdmin || currentUserRole === "viewer") && r.status !== "Verbraucht" ? `
     🗑️ Als verbraucht markieren
   </button>
 ` : ""}
+${isAdmin ? `
+  <button
+    class="red"
+    onclick="deleteRolleEndgueltig(${r.id})"
+    style="margin-top:15px;"
+  >
+    🗑️ Rolle endgültig löschen
+  </button>
+` : ""}
     </div>
   `;
 }
@@ -1724,4 +1733,56 @@ async function saveInterneBemerkung(id) {
   alert("Interne Bemerkung gespeichert.");
 
   await showDetail();
+}
+
+async function deleteRolleEndgueltig(id) {
+  if (!isAdmin || currentUserRole !== "admin") {
+    alert("Nur Administratoren dürfen Rollen löschen.");
+    return;
+  }
+
+  if (!confirm(
+    "ACHTUNG! Diese Rolle wirklich endgültig löschen?"
+  )) return;
+
+  try {
+    const daten = await api(
+      "rollen?id=eq." + id + "&select=*"
+    );
+
+    if (!daten || daten.length !== 1) {
+      throw new Error("Rolle nicht gefunden.");
+    }
+
+    const rolle = daten[0];
+
+    const result = await api(
+      "rollen?id=eq." + id,
+      {
+        method: "DELETE",
+        headers: {
+          Prefer: "return=representation"
+        }
+      }
+    );
+
+    if (!Array.isArray(result) || result.length !== 1) {
+      throw new Error(
+        "Rolle konnte nicht gelöscht werden. Berechtigungen oder Datenbankverknüpfungen prüfen."
+      );
+    }
+
+    await logAktion(
+      "Rolle endgültig gelöscht",
+      rolle.kennung,
+      `Typ: ${rolle.typ}`
+    );
+
+    alert("Rolle wurde endgültig gelöscht.");
+    location.href = "index.html?page=auswahl";
+
+  } catch (error) {
+    console.error("Rolle löschen Fehler:", error);
+    alert("Fehler beim Löschen: " + error.message);
+  }
 }
