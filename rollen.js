@@ -386,25 +386,27 @@ rollen.forEach((r, index) => {
     Number(r.urspruengliche_laenge) -
     Number(r.aktuelle_laenge);
 
-  // Megnézzük, hogy a következő tekercs más típusú-e
   const naechsteRolle = rollen[index + 1];
 
+  // Új típus kezdődik a következő sorban
   const typEnde =
     naechsteRolle &&
     r.typ !== naechsteRolle.typ;
 
+  // Vastagabb elválasztó vonal a cellák alatt
+  const trennlinie = typEnde
+    ? "border-bottom: 4px solid #64748b !important;"
+    : "";
+
   html += `
-    <tr
-      onclick="rolleOeffnen('${r.kennung}')"
-      style="${typEnde ? 'border-bottom: 3px solid #64748b;' : ''}"
-    >
-      <td>${r.kennung}</td>
-      <td>${r.bemerkung || "-"}</td>
-      <td>${r.typ}</td>
-      <td>${r.aktuelle_laenge} m</td>
-      <td>${verlust} m</td>
-      <td>${statusBadge(r.status)}</td>
-      <td>${r.auftrag || "-"}</td>
+    <tr onclick="rolleOeffnen('${r.kennung}')">
+      <td style="${trennlinie}">${r.kennung}</td>
+      <td style="${trennlinie}">${r.bemerkung || "-"}</td>
+      <td style="${trennlinie}">${r.typ}</td>
+      <td style="${trennlinie}">${r.aktuelle_laenge} m</td>
+      <td style="${trennlinie}">${verlust} m</td>
+      <td style="${trennlinie}">${statusBadge(r.status)}</td>
+      <td style="${trennlinie}">${r.auftrag || "-"}</td>
     </tr>
   `;
 });
