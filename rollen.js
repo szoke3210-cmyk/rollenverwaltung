@@ -1366,12 +1366,17 @@ async function rolleFreigeben(id) {
 
   const rolle = daten[0];
 
-  await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      status: "Im Lager"
-    })
-  });
+  const eredmeny = await api("rollen?id=eq." + id, {
+  method: "PATCH",
+  headers: {
+    Prefer: "return=representation"
+  },
+  body: JSON.stringify({
+    status: "Im Lager"
+  })
+});
+
+console.log("Freigeben PATCH Ergebnis:", eredmeny);
 
   const benutzer = await getAktuellerBenutzer();
 
