@@ -1353,54 +1353,8 @@ async function saveBemerkung(id) {
 
 
 async function rolleFreigeben(id) {
-  if (!viewerAktionPruefen()) return;
-
-  if (!confirm("Diese Rolle freigeben?")) return;
-
-  const daten = await api("rollen?id=eq." + id + "&select=*");
-
-  if (!daten.length) {
-    alert("Rolle nicht gefunden.");
-    return;
-  }
-
-  const rolle = daten[0];
-
-  const eredmeny = await api("rollen?id=eq." + id, {
-  method: "PATCH",
-  headers: {
-    Prefer: "return=representation"
-  },
-  body: JSON.stringify({
-    status: "Im Lager"
-  })
-});
-
-console.log("Freigeben PATCH Ergebnis:", eredmeny);
-
-  const benutzer = await getAktuellerBenutzer();
-
-await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    datum: new Date().toISOString(),
-    aktion: "Freigegeben",
-    bemerkung: "Rolle wurde freigegeben",
-    benutzer: benutzer
-  })
-});
-
-  await logAktion(
-    "Rolle freigegeben",
-    rolle.kennung,
-    `Typ: ${rolle.typ}, Status: Im Lager`
-  );
-
-  alert("Rolle wurde freigegeben.");
-  showAuswahl();
+  return freigeben(id);
 }
-
 
 async function showAuswahl() {
   const editId = new URLSearchParams(window.location.search).get("id");
@@ -1653,15 +1607,27 @@ async function freigeben(id) {
     const rolle = daten[0];
 
     // Státusz módosítása
-    await api("rollen?id=eq." + id, {
-      method: "PATCH",
-      headers: {
-        Prefer: "return=representation"
-      },
-      body: JSON.stringify({
-        status: "Im Lager"
-      })
-    });
+const patchResult = await api("rollen?id=eq." + id, {
+  method: "PATCH",
+  headers: {
+    Prefer: "return=representation"
+  },
+  body: JSON.stringify({
+    status: "Im Lager"
+  })
+});
+
+console.log("Freigeben PATCH RESULT:", patchResult);
+
+if (
+  !Array.isArray(patchResult) ||
+  patchResult.length !== 1 ||
+  patchResult[0].status !== "Im Lager"
+) {
+  throw new Error(
+    "Supabase hat die Rolle nicht aktualisiert."
+  );
+}
 
     // Ellenőrzés: tényleg megváltozott?
     const kontrolle = await api(
