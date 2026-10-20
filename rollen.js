@@ -681,7 +681,7 @@ async function showDetail() {
   </button>
 ` : ""}
 
-      ${(isAdmin || currentUserRole === "viewer") && r.status === "Nicht freigegeben" ? `
+      ${currentUserRole !== "viewer" && r.status === "Nicht freigegeben" ? `
         <button
           class="green"
           onclick="freigeben(${r.id})"
@@ -1566,19 +1566,20 @@ async function loadRolleEditor() {
        💾 Änderungen speichern
       </button>
 
-     ${(isAdmin || currentUserRole === "viewer") ? `
-      ${r.status === "Nicht freigegeben" ? `
-  <button onclick="rolleFreigeben(${r.id})" style="background:#28a745;color:white;margin-left:10px;">
-   🔓 Freigeben
-  </button>
-` : ""}
-        ${r.status !== "Verbraucht" ? `
-  <button class="red" onclick="markRolleVerbraucht(${r.id})">
-  🗑️ Als verbraucht markieren
+     ${currentUserRole !== "viewer" && r.status === "Nicht freigegeben" ? `
+  <button
+    onclick="rolleFreigeben(${r.id})"
+    style="background:#28a745;color:white;margin-left:10px;"
+  >
+    🔓 Freigeben
   </button>
 ` : ""}
 
-      ` : ""}
+${(isAdmin || currentUserRole === "viewer") && r.status !== "Verbraucht" ? `
+  <button class="red" onclick="markRolleVerbraucht(${r.id})">
+    🗑️ Als verbraucht markieren
+  </button>
+` : ""}
     </div>
   `;
 }
