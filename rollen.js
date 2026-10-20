@@ -1632,35 +1632,78 @@ location.reload();
 async function freigeben(id) {
   if (!viewerAktionPruefen()) return;
 
-  if (!confirm("Diese Rolle freigefben?")) return;
-  await api("rollen?id=eq." + id, {
-    method: "PATCH",
-    body: JSON.stringify({
-      status: "Im Lager"
-    })
-  });
+  if (!confirm("Diese Rolle freigeben?")) return;
 
-  const benutzer = await getAktuellerBenutzer();
+  try {
+    // Aktuális tekercs lekérése
+    const daten = await api(
+      "rollen?id=eq." + id + "&select=*"
+    );
 
-await api("historie", {
-  method: "POST",
-  body: JSON.stringify({
-    rollen_id: id,
-    aktion: "Freigegeben",
-    datum: new Date().toISOString(),
-    benutzer: benutzer
-  })
-});
-  await logAktion(
-    "Rolle freigegeben",
-    "",
-    `Rollen-ID: ${id}`
-  );
+    if (!daten || !daten.length) {
+      alert("Rolle nicht gefunden.");
+      return;
+    }
 
-  alert("Rolle wurde freigegeben.");
-  location.reload();
+    const rolle = daten[0];
+
+    // Státusz módosítása
+    await api("rollen?id=eq." + id, {
+      method: "PATCH",
+      headers: {
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify({
+        status: "Im Lager"
+      })
+    });
+
+    // Ellenőrzés: tényleg megváltozott?
+    const kontrolle = await api(
+      "rollen?id=eq." + id + "&select=status"
+    );
+
+    if (
+      !kontrolle ||
+      !kontrolle.length ||
+      kontrolle[0].status !== "Im Lager"
+    ) {
+      throw new Error(
+        "Status konnte nicht geändert werden. Bitte Berechtigungen prüfen."
+      );
+    }
+
+    // Historie
+    const benutzer = await getAktuellerBenutzer();
+
+    await api("historie", {
+      method: "POST",
+      body: JSON.stringify({
+        rollen_id: id,
+        aktion: "Freigegeben",
+        datum: new Date().toISOString(),
+        benutzer: benutzer
+      })
+    });
+
+    await logAktion(
+      "Rolle freigegeben",
+      rolle.kennung,
+      `Typ: ${rolle.typ}, Status: Im Lager`
+    );
+
+    alert("Rolle wurde freigegeben.");
+    location.reload();
+
+  } catch (error) {
+    console.error("Freigeben Fehler:", error);
+
+    alert(
+      "Fehler beim Freigeben: " +
+      error.message
+    );
+  }
 }
-
 async function saveInterneBemerkung(id) {
   if (!viewerAktionPruefen()) return;
 
