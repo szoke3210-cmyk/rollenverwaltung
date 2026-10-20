@@ -28,13 +28,13 @@ async function showList() {
   let rollen = await api(query);
 
   const statusFilter =
-    sessionStorage.getItem("statusFilter") || "alle";
+  sessionStorage.getItem("statusFilter") || "alle";
 
-if (r.status !== "Verbraucht") {
-  typen[r.typ].meter +=
-    Number(r.aktuelle_laenge) || 0;
+if (statusFilter === "alle") {
+  rollen = rollen.filter(r =>
+    r.status !== "Verbraucht"
+  );
 }
-
   if (statusFilter === "verbraucht") {
     rollen = rollen.filter(r =>
       r.status === "Verbraucht"
