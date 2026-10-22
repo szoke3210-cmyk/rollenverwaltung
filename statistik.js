@@ -315,66 +315,177 @@ function resetStatistikZeitraum() {
 }
 
 
-function downloadStatistikCSV() {
-  const statistik =
-    window.statistikData || {};
 
-  let csv =
-    "\uFEFFMonat;Tag;Typ;Kunde;Verbrauch\n";
+async function downloadStatistikCSV() {
+  if (typeof XLSX === "undefined") {
+    alert("Excel-Bibliothek nicht geladen.");
+    return;
+  }
 
-  Object.keys(statistik)
-    .sort()
-    .forEach(monat => {
-      Object.keys(statistik[monat])
-        .forEach(tag => {
-          Object.keys(statistik[monat][tag])
-            .forEach(typ => {
-              const kunden =
-                statistik[monat][tag][typ]
-                  .kunden || {};
+  try {
+    const historie = [];
+    const schritt = 1000;
+    let von = 0;
 
-              Object.keys(kunden)
-                .sort()
-                .forEach(kunde => {
-                  csv +=
-                    monat + ";" +
-                    tag + ";" +
-                    typ + ";" +
-                    kunde + ";" +
-                    Number(
-                      kunden[kunde] || 0
-                    ).toFixed(2) +
-                    "\n";
-                });
-            });
-        });
+    while (true) {
+      const teil = await api(
+        "historie?select=*&order=id.asc",
+        {
+          headers: {
+            Range: `${von}-${von + schritt - 1}`
+          }
+        }
+      );
+
+      if (!Array.isArray(teil)) {
+        throw new Error("Historie konnte nicht geladen werden.");
+      }
+
+      historie.push(...teil);
+
+      if (teil.length < schritt) break;
+      von += schritt;
+    }
+
+    const daten = historie.flatMap(h => {
+      const meter = Number(h.verbrauch);
+
+      if (!Number.isFinite(meter) || meter <= 0 || !h.datum) {
+        return [];
+      }
+
+      const d = new Date(h.datum);
+      if (Number.isNaN(d.getTime())) return [];
+
+      return [{
+        jahr: d.getFullYear(),
+        monat: d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0"),
+        datum: d.toLocaleDateString("de-DE"),
+        zeit: d.getTime(),
+        typ: h.typ || "Ohne Typ",
+        kunde: h.auftrag || h.bemerkung || "Ohne Kunde",
+        meter: meter
+      }];
     });
 
-  const blob = new Blob(
-    [csv],
-    {
-      type: "text/csv;charset=utf-8;"
+    const typen = [...new Set(daten.map(x => x.typ))]
+      .sort((a, b) => a.localeCompare(b, "de", {numeric: true}));
+
+    const monate = [...new Set(daten.map(x => x.monat))].sort();
+    const jahre = [...new Set(daten.map(x => x.jahr))].sort((a, b) => a - b);
+
+    const runden = n => Math.round((n + Number.EPSILON) * 100) / 100;
+
+    const summe = (typ, feld, wert) =>
+      daten.reduce((s, x) =>
+        s + (x.typ === typ &&
+          (!feld || x[feld] === wert) ? x.meter : 0), 0);
+
+    // 1. Verbrauch
+    const details = [
+      ["Monat", "Datum", "Typ", "Auftrag / Kunde", "Verbrauch (m)"]
+    ];
+
+    for (const typ of typen) {
+      const zeilen = daten
+        .filter(x => x.typ === typ)
+        .sort((a, b) => a.zeit - b.zeit);
+
+      for (const x of zeilen) {
+        details.push([
+          x.monat, x.datum, x.typ, x.kunde, runden(x.meter)
+        ]);
+      }
+
+      details.push([
+        "", "", typ + " - Gesamt", "", runden(summe(typ))
+      ]);
+      details.push([]);
     }
-  );
 
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+    // 2. Monatsübersicht
+    const monatTabelle = [
+      ["Typ", ...monate, "Gesamt (m)"]
+    ];
 
-  const von =
-    sessionStorage.getItem("statistikVon") ||
-    "alle";
+    for (const typ of typen) {
+      monatTabelle.push([
+        typ,
+        ...monate.map(m => runden(summe(typ, "monat", m))),
+        runden(summe(typ))
+      ]);
+    }
 
-  const bis =
-    sessionStorage.getItem("statistikBis") ||
-    "alle";
+    monatTabelle.push([
+      "Gesamt (m)",
+      ...monate.map(m => runden(
+        daten.filter(x => x.monat === m)
+          .reduce((s, x) => s + x.meter, 0)
+      )),
+      runden(daten.reduce((s, x) => s + x.meter, 0))
+    ]);
 
-  link.href = url;
-  link.download =
-    `Statistik_${von}_bis_${bis}.csv`;
+    // 3. Jahresübersicht
+    const jahrTabelle = [
+      ["Typ", ...jahre.map(String), "Gesamt (m)"]
+    ];
 
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+    for (const typ of typen) {
+      jahrTabelle.push([
+        typ,
+        ...jahre.map(j => runden(summe(typ, "jahr", j))),
+        runden(summe(typ))
+      ]);
+    }
 
-  URL.revokeObjectURL(url);
+    jahrTabelle.push([
+      "Gesamt (m)",
+      ...jahre.map(j => runden(
+        daten.filter(x => x.jahr === j)
+          .reduce((s, x) => s + x.meter, 0)
+      )),
+      runden(daten.reduce((s, x) => s + x.meter, 0))
+    ]);
+
+    const wb = XLSX.utils.book_new();
+
+    function addSheet(rows, name, widths, numericFrom) {
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+
+      ws["!cols"] = widths.map(wch => ({ wch }));
+
+      for (const address of Object.keys(ws)) {
+        if (address.startsWith("!")) continue;
+
+        const cell = ws[address];
+        const pos = XLSX.utils.decode_cell(address);
+
+        if (pos.r > 0 && pos.c >= numericFrom && cell.t === "n") {
+          cell.z = "0.00";
+        }
+      }
+
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    }
+
+    addSheet(details, "Verbrauch",
+      [14, 16, 24, 36, 18], 4);
+
+    addSheet(monatTabelle, "Monatsübersicht",
+      [24, ...monate.map(() => 16), 18], 1);
+
+    addSheet(jahrTabelle, "Jahresübersicht",
+      [24, ...jahre.map(() => 16), 18], 1);
+
+    XLSX.writeFile(
+      wb,
+      "Rollenverwaltung_Statistik_Gesamt.xlsx"
+    );
+
+  } catch (error) {
+    console.error("Excel Export Fehler:", error);
+    alert("Excel-Export fehlgeschlagen: " + error.message);
+  }
 }
+
