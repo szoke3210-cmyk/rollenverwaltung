@@ -448,6 +448,74 @@ async function downloadStatistikCSV() {
       runden(daten.reduce((s, x) => s + x.meter, 0))
     ]);
 
+    // 4. Kundenübersicht
+    const aktuellesJahr = new Date().getFullYear();
+
+    const kunden = [...new Set(daten.map(x => x.kunde))]
+      .sort((a, b) => a.localeCompare(b, "de"));
+
+    const kundenTabelle = [
+      ["Kunde", "Typ", "Gesamt (m)", `${aktuellesJahr} (m)`]
+    ];
+
+    for (const kunde of kunden) {
+      const kundenDaten = daten.filter(x => x.kunde === kunde);
+
+      const kundenTypen = [...new Set(kundenDaten.map(x => x.typ))]
+        .sort((a, b) => a.localeCompare(b, "de", { numeric: true }));
+
+      for (const typ of kundenTypen) {
+        const typDaten = kundenDaten.filter(x => x.typ === typ);
+
+        const gesamt = typDaten.reduce(
+          (summe, x) => summe + x.meter, 0
+        );
+
+        const jahresverbrauch = typDaten
+          .filter(x => x.jahr === aktuellesJahr)
+          .reduce((summe, x) => summe + x.meter, 0);
+
+        kundenTabelle.push([
+          kunde,
+          typ,
+          runden(gesamt),
+          runden(jahresverbrauch)
+        ]);
+      }
+
+      const kundenGesamt = kundenDaten.reduce(
+        (summe, x) => summe + x.meter, 0
+      );
+
+      const kundenJahr = kundenDaten
+        .filter(x => x.jahr === aktuellesJahr)
+        .reduce((summe, x) => summe + x.meter, 0);
+
+      kundenTabelle.push([
+        kunde + " - Gesamt",
+        "",
+        runden(kundenGesamt),
+        runden(kundenJahr)
+      ]);
+
+      kundenTabelle.push([]);
+    }
+
+    const alleGesamt = daten.reduce(
+      (summe, x) => summe + x.meter, 0
+    );
+
+    const alleJahr = daten
+      .filter(x => x.jahr === aktuellesJahr)
+      .reduce((summe, x) => summe + x.meter, 0);
+
+    kundenTabelle.push([
+      "Gesamtverbrauch",
+      "",
+      runden(alleGesamt),
+      runden(alleJahr)
+    ]);
+
     const wb = XLSX.utils.book_new();
 
     function addSheet(rows, name, widths, numericFrom) {
@@ -477,6 +545,9 @@ async function downloadStatistikCSV() {
 
     addSheet(jahrTabelle, "Jahresübersicht",
       [24, ...jahre.map(() => 16), 18], 1);
+    
+    addSheet(kundenTabelle, "Kundenübersicht",
+  [36, 24, 18, 18], 2);
 
     XLSX.writeFile(
       wb,
