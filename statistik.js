@@ -317,7 +317,7 @@ function resetStatistikZeitraum() {
 
 
 async function downloadStatistikCSV() {
-  if (typeof XLSX === "undefined") {
+  if (typeof ExcelJS === "undefined") {
     alert("Excel-Bibliothek nicht geladen.");
     return;
   }
@@ -516,43 +516,163 @@ async function downloadStatistikCSV() {
       runden(alleJahr)
     ]);
 
-    const wb = XLSX.utils.book_new();
+    
+    // Excel-Arbeitsmappe erstellen
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Rollenverwaltung";
 
     function addSheet(rows, name, widths, numericFrom) {
-      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const ws = wb.addWorksheet(name);
 
-      ws["!cols"] = widths.map(wch => ({ wch }));
+      ws.columns = widths.map(w => ({ width: w }));
 
-      for (const address of Object.keys(ws)) {
-        if (address.startsWith("!")) continue;
+      rows.forEach(row => {
+        ws.addRow(row);
+      });
 
-        const cell = ws[address];
-        const pos = XLSX.utils.decode_cell(address);
+      // Tabellenkopf
+      const kopf = ws.getRow(1);
+      kopf.height = 26;
 
-        if (pos.r > 0 && pos.c >= numericFrom && cell.t === "n") {
-          cell.z = "0.00";
+      kopf.eachCell({ includeEmpty: true }, cell => {
+        cell.font = {
+          bold: true,
+          color: { argb: "FFFFFFFF" },
+          size: 11
+        };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF30577D" }
+        };
+        cell.alignment = { vertical: "middle" };
+      });
+
+      // Gesamt-Zeilen hervorheben
+      ws.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+
+        const werte = row.values
+          .slice(1)
+          .map(v => String(v ?? ""));
+
+        const istGesamt = werte.some(v =>
+          v.includes("Gesamt")
+        );
+
+        const istEndsumme = werte.some(v =>
+          v === "Gesamtverbrauch" ||
+          v === "Gesamt (m)"
+        );
+
+        if (istGesamt) {
+          row.height = 23;
+
+          row.eachCell({ includeEmpty: true }, cell => {
+            cell.font = {
+              bold: true,
+              color: {
+                argb: istEndsumme
+                  ? "FFFFFFFF"
+                  : "FF17365D"
+              }
+            };
+
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: {
+                argb: istEndsumme
+                  ? "FF17365D"
+                  : "FFDCEAF8"
+              }
+            };
+
+            cell.border = {
+              top: {
+                style: "thin",
+                color: { argb: "FF7D9DBB" }
+              }
+            };
+          });
         }
-      }
 
-      XLSX.utils.book_append_sheet(wb, ws, name);
+        // Zahlenformat
+        row.eachCell((cell, colNumber) => {
+          if (
+            colNumber > numericFrom &&
+            typeof cell.value === "number"
+          ) {
+            cell.numFmt = "0.00";
+            cell.alignment = {
+              horizontal: "right"
+            };
+          }
+        });
+      });
+
+      ws.views = [
+        { state: "frozen", ySplit: 1 }
+      ];
+
+      ws.autoFilter = {
+        from: { row: 1, column: 1 },
+        to: { row: 1, column: widths.length }
+      };
     }
 
-    addSheet(details, "Verbrauch",
-      [14, 16, 24, 36, 18], 4);
-
-    addSheet(monatTabelle, "Monatsübersicht",
-      [24, ...monate.map(() => 16), 18], 1);
-
-    addSheet(jahrTabelle, "Jahresübersicht",
-      [24, ...jahre.map(() => 16), 18], 1);
-    
-    addSheet(kundenTabelle, "Kundenübersicht",
-  [36, 24, 18, 18], 2);
-
-    XLSX.writeFile(
-      wb,
-      "Rollenverwaltung_Statistik_Gesamt.xlsx"
+    addSheet(
+      details,
+      "Verbrauch",
+      [14, 16, 24, 36, 18],
+      4
     );
+
+    addSheet(
+      monatTabelle,
+      "Monatsübersicht",
+      [24, ...monate.map(() => 16), 18],
+      1
+    );
+
+    addSheet(
+      jahrTabelle,
+      "Jahresübersicht",
+      [24, ...jahre.map(() => 16), 18],
+      1
+    );
+
+    addSheet(
+      kundenTabelle,
+      "Kundenübersicht",
+      [36, 24, 18, 18],
+      2
+    );
+
+    // Excel-Datei herunterladen
+    const buffer = await wb.xlsx.writeBuffer();
+
+    const blob = new Blob(
+      [buffer],
+      {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download =
+      "Rollenverwaltung_Statistik_Gesamt.xlsx";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+
 
   } catch (error) {
     console.error("Excel Export Fehler:", error);
