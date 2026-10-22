@@ -455,8 +455,8 @@ async function downloadStatistikCSV() {
       .sort((a, b) => a.localeCompare(b, "de"));
 
     const kundenTabelle = [
-      ["Kunde", "Typ", "Gesamt (m)", `${aktuellesJahr} (m)`]
-    ];
+  ["Kunde", "Typ", `${aktuellesJahr} (m)`, "Gesamt (m)"]
+];
 
     for (const kunde of kunden) {
       const kundenDaten = daten.filter(x => x.kunde === kunde);
@@ -476,11 +476,11 @@ async function downloadStatistikCSV() {
           .reduce((summe, x) => summe + x.meter, 0);
 
         kundenTabelle.push([
-          kunde,
-          typ,
-          runden(gesamt),
-          runden(jahresverbrauch)
-        ]);
+  kunde,
+  typ,
+  runden(jahresverbrauch),
+  runden(gesamt)
+]);
       }
 
       const kundenGesamt = kundenDaten.reduce(
@@ -492,11 +492,11 @@ async function downloadStatistikCSV() {
         .reduce((summe, x) => summe + x.meter, 0);
 
       kundenTabelle.push([
-        kunde + " - Gesamt",
-        "",
-        runden(kundenGesamt),
-        runden(kundenJahr)
-      ]);
+  kunde + " - Gesamt",
+  "",
+  runden(kundenJahr),
+  runden(kundenGesamt)
+]);
 
       kundenTabelle.push([]);
     }
@@ -509,12 +509,12 @@ async function downloadStatistikCSV() {
       .filter(x => x.jahr === aktuellesJahr)
       .reduce((summe, x) => summe + x.meter, 0);
 
-    kundenTabelle.push([
-      "Gesamtverbrauch",
-      "",
-      runden(alleGesamt),
-      runden(alleJahr)
-    ]);
+   kundenTabelle.push([
+  "Gesamtverbrauch",
+  "",
+  runden(alleJahr),
+  runden(alleGesamt)
+]);
 
     
     // Excel-Arbeitsmappe erstellen
