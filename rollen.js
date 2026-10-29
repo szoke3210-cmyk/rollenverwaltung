@@ -1556,45 +1556,52 @@ ${isAdmin ? `
 async function saveRolleEditor(id) {
   if (!viewerAktionPruefen()) return;
 
-  const kennung = document.getElementById("editKennung").value.trim();
-  const typ = document.getElementById("editTyp").value.trim();
-  const ursprung = Number(document.getElementById("editUrsprung").value);
-  const aktuell = Number(document.getElementById("editAktuell").value);
-  const bemerkung = document.getElementById("editBemerkung").value;
-  const auftrag = document.getElementById("editAuftrag").value;
-  const status = document.getElementById("editStatus").value;
-
-  if (!kennung || !typ) {
-    alert("Kennung und Typ ausfüllen.");
-    return;
+  try {
+    const daten = await api("rollen?id=eq." + id + "&select=*");
+    if (!Array.isArray(daten) || daten.length !== 1) throw new Error("Rolle nicht gefunden.");
+    const alt = daten[0];
+    const neu = {
+      kennung: document.getElementById("editKennung").value.trim(),
+      typ: document.getElementById("editTyp").value.trim(),
+      urspruengliche_laenge: Number(document.getElementById("editUrsprung").value),
+      aktuelle_laenge: Number(document.getElementById("editAktuell").value),
+      status: document.getElementById("editStatus").value,
+      bemerkung: document.getElementById("editBemerkung").value,
+      auftrag: document.getElementById("editAuftrag").value
+    };
+    if (!neu.kennung || !neu.typ) { alert("Kennung und Typ ausfüllen."); return; }
+    if (![neu.urspruengliche_laenge, neu.aktuelle_laenge].every(n => Number.isFinite(n) && n >= 0)) {
+      alert("Bitte gültige, nicht negative Längen eingeben."); return;
+    }
+    const felder = {
+      kennung: "Kennung", typ: "Typ", urspruengliche_laenge: "Ursprüngliche Länge",
+      aktuelle_laenge: "Aktuelle Länge", status: "Status", bemerkung: "Bemerkung", auftrag: "Auftrag"
+    };
+    const aenderungen = Object.keys(felder).filter(k =>
+      ["urspruengliche_laenge", "aktuelle_laenge"].includes(k)
+        ? Number(alt[k]) !== Number(neu[k])
+        : String(alt[k] ?? "") !== String(neu[k] ?? "")
+    ).map(k => `${felder[k]}: ${alt[k] ?? "-"} → ${neu[k] || (neu[k] === 0 ? 0 : "-")}${k.includes("laenge") ? " m" : ""}`);
+    if (!aenderungen.length) { alert("Keine Änderung."); return; }
+    const result = await api("rollen?id=eq." + id, {
+      method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(neu)
+    });
+    if (!Array.isArray(result) || result.length !== 1) throw new Error("Änderung konnte nicht bestätigt werden.");
+    const benutzer = await getAktuellerBenutzer();
+    const details = aenderungen.join(" | ");
+    await api("historie", {
+      method: "POST", headers: { Prefer: "return=representation" },
+      body: JSON.stringify({ rollen_id: id, aktion: "Rolle geändert | " + details,
+        laenge: neu.aktuelle_laenge, bemerkung: neu.bemerkung, typ: neu.typ,
+        auftrag: neu.auftrag, benutzer })
+    });
+    await logAktion("Rolle geändert", neu.kennung, details);
+    alert("Rolle geändert und Historie gespeichert.");
+    location.reload();
+  } catch (error) {
+    console.error("Rolle bearbeiten Fehler:", error);
+    alert("Fehler beim Speichern oder Protokollieren: " + error.message + ". Bitte Historie prüfen.");
   }
-
-  if (ursprung < 0 || aktuell < 0) {
-    alert("Länge darf nicht negativ sein.");
-    return;
-  }
-
-  await api("rollen?id=eq." + id, {
-  method: "PATCH",
-  body: JSON.stringify({
-    kennung: kennung,
-    typ: typ,
-    urspruengliche_laenge: ursprung,
-    aktuelle_laenge: aktuell,
-    status: status,
-    bemerkung: bemerkung,
-    auftrag: auftrag
-  })
-});
-
-await logAktion(
-  "Rolle geändert",
-  kennung,
-  `Typ: ${typ}, Status: ${status}, Aktuell: ${aktuell} m`
-);
-
-alert("Rolle geändert");
-location.reload();
 }
 
 async function freigeben(id) {
